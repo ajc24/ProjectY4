@@ -1,0 +1,67 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				23rd March 2015
+	Purpose:			Display the login screen to the user and process any login requests.
+-->
+
+{% extends "masterHeadingMenuFooterPage.html" %}
+
+{% block common_jquery %}
+<SCRIPT>
+// Validate the school entry details for this page
+function validateLoginDetails() {
+	$.ajax({ url: "/validateLogin", data: $('FORM').serialize(), type: 'POST', async: false, success: function(result) {
+						if(result == "OK") {
+							window.location.replace("/homePage")
+						} else {
+							alert(result);
+						}
+					}});
+}
+</SCRIPT>
+{% endblock %}
+
+{% block main_body_content %}
+	<DIV ALIGN = "CENTER">
+		<H2>Login to the Music School Manager</H2>
+		<P>
+		Enter your email address and password details into the text boxes, below.<BR>
+		Please note that only accounts linked to registered schools can log into this application.<BR>
+		</P>
+		
+		<BR>
+		<FORM>
+			<TABLE CLASS = "detailsEntry">
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Email Address:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "emailAddress" NAME = "emailAddress" CLASS = "schoolDetails" AUTOFOCUS
+							TITLE = "Enter your schools email address in the format name@provider.domain"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Password:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "PASSWORD" ID = "password" NAME = "password" CLASS = "schoolDetails"
+							TITLE = "Enter your account password in order to log in."></INPUT>
+					</TD>
+				</TR>
+			</TABLE>
+		</FORM>
+		<BR>
+		<INPUT TYPE = "BUTTON" ONCLICK = "validateLoginDetails();" VALUE = "Login"></INPUT>
+		<BR>
+		<BR>
+		<P>
+		If you wish to register for a new school account, please follow this <A HREF = "{{ register_new_school_url }}">
+			<B><U>Register New School</U></B></A> link.<BR>
+		Individual teacher and student accounts can only be set up by your school administrator. You cannot manually register for these accounts.<BR>
+		If you have forgotten your password, you must contact your school administrator in order to request a password reset.
+		</P>
+	</DIV>
+{% endblock %}

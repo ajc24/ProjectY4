@@ -1,0 +1,158 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				14th April 2015
+	Purpose:			This page allows an administrator to select a location and, subsequently, a classroom in order
+						to view the classrooms timetable.
+-->
+
+{% extends "masterHeadingMenuFooterPage.html" %}
+
+{% block common_jquery %}
+<SCRIPT>
+// Retrieve the list of classrooms associated with the provided location id
+function loadClassroomsList() {
+	$.ajax({ url: "/retrieveClassroomsList", data: $('#locationSelect').serialize(), type: 'POST', async: false, success: function(result) {
+						processSearchResult(result);
+					}});
+}
+
+// Load the selected classrooms timetable
+function loadClassroomTimetable() {
+	$.ajax({ url: "/loadRoomTimetable", data: $('#selectedLocation').serialize(), type: 'POST', async: false, success: function(result) {
+						if(result == "OK") {
+							$("#loadingTimetable").finish().show();
+							window.location.replace("/viewAllTimetables")
+						} else {
+							alert("There was an error with this timetable selection. Please try again later.");
+						}
+					}});
+} 
+
+</SCRIPT>
+{% endblock %}
+
+{% block common_javascript %}
+<SCRIPT>
+// Initialise newly created DOM elements that populate the person editor window and show the editing options to the user
+function initialiseEditableData() {
+	$(".editableData").click( function() {
+		var element = $(this).next("input[type=hidden]");
+		var elementValue = $(element).attr("VALUE");
+		var individualAttr = elementValue.split(",");
+		document.getElementById("requestedLocationId").value = individualAttr[0];
+		document.getElementById("classroomId").value = individualAttr[1];
+		
+		loadClassroomTimetable();
+	});
+}
+
+// Output the result of the search to the user
+function processSearchResult(searchResultString) {
+	// Replace all of the obsolete characters in the string
+	searchResultString = replaceAll(searchResultString, "[", "");
+	searchResultString = replaceAll(searchResultString, "]", "");
+	searchResultString = replaceAll(searchResultString, "\"", "");
+	
+	// Split the result into an array of individual attributes and output them below the search bar
+	var splitResult = searchResultString.split(",");
+	var index = 0;
+	var namesDisplay = "<BR><TABLE CLASS = 'recordsDisplay'>";
+	namesDisplay += "<TR><TD CLASS = 'recordsHeading'>";
+	namesDisplay += "<DIV ALIGN = 'CENTER'><P CLASS = 'tableHeading'>Click a Timetable to View</P></DIV>";
+	namesDisplay += "</TD></TR>";
+	if(splitResult.length == 1 && splitResult[0] == "pageLoader") {
+		namesDisplay += "<TR>";
+		namesDisplay += "<TD CLASS = 'recordsHeading'>";
+		namesDisplay += "<P>After selecting a location, simply<BR>click 'Select Location' to list this locations classrooms.</P>";
+		namesDisplay += "</TD>";
+		namesDisplay += "</TR>";
+	} else if(splitResult.length == 1) {
+		namesDisplay += "<TR>";
+		namesDisplay += "<TD CLASS = 'recordsHeading'>";
+		namesDisplay += "<DIV ALIGN = 'CENTER'>";
+		namesDisplay += "<P>No rooms have been added to this location.</P>";
+		namesDisplay += "</DIV>";
+		namesDisplay += "</TD>";
+		namesDisplay += "</TR>";
+	} else {
+		while(index < splitResult.length) {
+			namesDisplay += "<TR>";
+			namesDisplay += "<TD CLASS = 'recordsHeading'>";
+			namesDisplay += "<DIV ALIGN = 'CENTER'>";
+			namesDisplay += "<P CLASS = 'editableData'>" + splitResult[index + 2].trim() + "</P>";
+			namesDisplay += "<INPUT TYPE = 'HIDDEN' ID = 'room" + index + "' NAME = 'room" + index + "' ";
+			namesDisplay += "VALUE = '" + splitResult[index].trim() + "," + splitResult[index + 1].trim() + "'></INPUT>";
+			namesDisplay += "</DIV>";
+			namesDisplay += "</TD>";
+			namesDisplay += "</TR>";
+			index += 3;
+		}
+	}
+	namesDisplay += "</TABLE><BR>";
+	document.getElementById("classroomsList").innerHTML = namesDisplay;
+	initialiseEditableData();
+}
+
+// Replace all of the characters specified with their specified replacements in the provided string
+function replaceAll(theString, theCharacter, theReplacement) {
+	while(theString.indexOf(theCharacter) >= 0) {
+		theString = theString.replace(theCharacter, theReplacement);
+	}
+	return theString;
+}
+
+// Reset the classrooms list to an empty DIV
+function resetClassroomsList() {
+	processSearchResult("pageLoader");
+	document.getElementById("requestedLocationId").value = "";
+	document.getElementById("classroomId").value = "";
+}
+</SCRIPT>
+{% endblock %}
+
+{% block main_body_content %}
+	<DIV ALIGN = "CENTER">
+		<H2>View a Classroom Timetable</H2>
+		<P>Choose a location from the search box below and click the "Select" button. The list of classrooms associated
+		<BR>with this location will be displayed. Select any of the rooms listed to view the timetable associated with that room.</P>
+		<FORM ID = "locationSelect" NAME = "locationSelect">
+			<TABLE CLASS = "detailsEntry">
+				<TR>
+					<TD>
+						<DIV ALIGN = "CENTER">
+							<P CLASS = 'tableHeading'>Please Select a Location</P>
+							<SELECT ID = "locationId" NAME = "locationId" CLASS = "colourSelect" ONCHANGE = "resetClassroomsList();"
+									TITLE = "Select a location from this list. The list of classrooms associated with this location will be listed below.">
+							<OPTION SELECTED HIDDEN VALUE = "not set">Please Select a Location</OPTION>
+							{% for index in range(0, list_of_locations.__len__()): %}
+								<OPTION VALUE = "{{ list_of_locations[index].locationId }}">{{ list_of_locations[index].locationName }}</OPTION>
+							{% endfor %}
+							</SELECT>
+						</DIV>
+					</TD>
+				</TR>
+			<TABLE>
+			<BR>
+			<INPUT TYPE = "BUTTON" ONCLICK = "loadClassroomsList();" VALUE = "&nbsp;&nbsp;Select Location&nbsp;&nbsp;"></INPUT>
+		</FORM>
+		<BR><BR>
+		<DIV ID = "classroomsList" NAME = "classroomsList"></DIV>
+		<SCRIPT>
+			processSearchResult("pageLoader");
+		</SCRIPT>
+	</DIV>
+	<BR>
+	<FORM ID = "selectedLocation" NAME = "selectedLocation">
+		<INPUT TYPE = "HIDDEN" ID = "requestedLocationId" NAME = "requestedLocationId"></INPUT>
+		<INPUT TYPE = "HIDDEN" ID = "classroomId" NAME = "classroomId"></INPUT>
+	</FORM>
+{% endblock %}
+
+{% block confirmation_windows %}
+<DIV ID = "loadingTimetable" CLASS = "confirmationWindow" HIDDEN>
+	<BR>Loading Classroom Timetable
+	<BR>
+	<BR>Please Wait
+</DIV>
+{% endblock %}

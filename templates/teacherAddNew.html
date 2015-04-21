@@ -1,0 +1,156 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				6th March 2015
+	Purpose:			This page displays the add new teacher screen to the user. The user enters the
+						new teacher details and submits it. It is then stored in the database.
+-->
+
+{% extends "masterHeadingMenuFooterPage.html" %}
+
+{% block common_jquery %}
+<SCRIPT>
+// Store the new lesson details
+function addNewTeacher() {
+	$.ajax({ url: "/submitNewTeacher", data: $("FORM").serialize(), type: "POST", async: false, success: function(result) {
+						if(result == "OK") {
+							$(".confirmationWindow").finish().show();
+							setTimeout(function () {
+								$(".confirmationWindow").finish().hide();
+								document.getElementById("firstName").value = "";
+								document.getElementById("surname").value = "";
+								document.getElementById("dateOfBirth").value = "";
+								document.getElementById("streetName1").value = "";
+								document.getElementById("streetName2").value = "";
+								document.getElementById("townOrCity").value = "";
+								document.getElementById("county").value = "";
+								document.getElementById("phoneNumber").value = "";
+								document.getElementById("emailAddress").value = "";
+								document.getElementById("confirmedEmail").value = "";
+							}, 2000);
+						} else {
+							alert(result);
+						}
+					}});
+}
+</SCRIPT>
+{% endblock %}
+
+{% block main_body_content %}
+	<DIV ALIGN = "CENTER">
+		<H2>Add a New Teacher</H2>
+		<P>Enter your new teacher details into the text fields below.
+		<BR>When you are finished, submit this teacher to automatically link them to your school.</P>
+		<BR>
+		<FORM>
+			<!-- Hidden input elements store data which the user cannot change -->
+			<INPUT TYPE = "HIDDEN" ID = "schoolId" NAME = "schoolId" VALUE = "{{ current_school_id }}"></INPUT>
+			
+			<!-- Output the table which will present all options which can be edited to the user -->
+			<TABLE CLASS = "detailsEntry">
+				<TR>
+					<TD CLASS = "detailsHeading">
+						First Name:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "firstName" NAME = "firstName" CLASS = "schoolDetails"
+							TITLE = "Enter the first name of the teacher you wish to add." AUTOFOCUS></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Surname:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "surname" NAME = "surname" CLASS = "schoolDetails"
+							TITLE = "Enter the surname of the teacher you wish to add." AUTOFOCUS></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Date of Birth:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "dateOfBirth" NAME = "dateOfBirth"
+							TITLE = "Enter the teachers date of birth in the format DD/MM/YY." CLASS = "schoolDetails"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Street Name 1:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "streetName1" NAME = "streetName1"
+							TITLE = "Enter the street name for your new teacher." CLASS = "schoolDetails"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Street Name 2:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "streetName2" NAME = "streetName2"
+							TITLE = "Enter the street name for your new teacher." CLASS = "schoolDetails"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Town or City:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "townOrCity" NAME = "townOrCity"
+							TITLE = "Enter the town or city in which your new teacher is based." CLASS = "schoolDetails"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						County:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "county" NAME = "county"
+							TITLE = "Enter the county in which your new teacher is based." CLASS = "schoolDetails"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Phone Number:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "phoneNumber" NAME = "phoneNumber"
+							TITLE = "Enter the phone number for your new teacher." CLASS = "schoolDetails"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Email Address:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "emailAddress" NAME = "emailAddress"
+								TITLE = "Enter the email address for your new teacher." CLASS = "schoolDetails"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Confirm Email Address:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "confirmedEmail" NAME = "confirmedEmail"
+							TITLE = "Confirm the email address for your new teacher." CLASS = "schoolDetails"></INPUT>
+					</TD>
+				</TR>
+			</TABLE>
+			<BR>
+			<INPUT TYPE = "BUTTON" TITLE = "Submit the new teacher details to the database for storage."
+				ONCLICK = "addNewTeacher();" VALUE = "Submit New Teacher"></INPUT>
+		</FORM>
+	</DIV>
+	<BR>
+{% endblock %}
+
+{% block confirmation_windows %}
+<DIV CLASS = "confirmationWindow" HIDDEN>
+<BR>
+<BR>
+New Teacher Added Successfully
+</DIV>
+{% endblock %}

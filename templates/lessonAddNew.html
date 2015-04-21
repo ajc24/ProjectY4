@@ -1,0 +1,115 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				13th February 2015
+	Purpose:			This page displays the add new lesson screen to the user. The user enters the
+						new lesson details and submits it. It is then stored in the database.
+-->
+
+{% extends "masterHeadingMenuFooterPage.html" %}
+
+{% block common_jquery %}
+<SCRIPT>
+// Store the new lesson details
+function storeNewLesson() {
+	$.ajax({ url: "/submitNewLesson", data: $("FORM").serialize(), type: "POST", async: false, success: function(result) {
+						if(result == "OK") {
+							$(".confirmationWindow").finish().show();
+							setTimeout(function () {
+								$(".confirmationWindow").finish().hide();
+								document.getElementById("nameOfLesson").value = "";
+								document.getElementById("abbreviatedName").value = "";
+							}, 2000);
+						} else {
+							alert(result);
+						}
+					}});
+}
+</SCRIPT>
+{% endblock %}
+
+{% block common_javascript %}
+<SCRIPT>
+// Change the colour in the colour selection box
+function changeColour(idOfElement, colourSelected) {
+	document.getElementById(idOfElement).style.backgroundColor = colourSelected;
+	document.getElementById("colourOfLesson").value = colourSelected;
+}
+</SCRIPT>
+{% endblock %}
+
+{% block main_body_content %}
+	<DIV ALIGN = "CENTER">
+		<H2>Add New Lesson</H2>
+		<P>Please enter the new lesson details below.</P>
+		<BR>
+		<FORM>
+			<!-- Hidden input elements store data which the user cannot change -->
+			<INPUT TYPE = "HIDDEN" ID = "schoolId" NAME = "schoolId" VALUE = "{{ current_school_id }}"></INPUT>
+			<INPUT TYPE = "HIDDEN" ID = "colourOfLesson" NAME = "colourOfLesson"></INPUT>
+			
+			<!-- Output the table which will present all options which can be edited to the user -->
+			<TABLE CLASS = "detailsEntry">
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Lesson Name:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "nameOfLesson" NAME = "nameOfLesson" CLASS = "schoolDetails"
+							TITLE = "Enter the name of the lesson you wish to add." AUTOFOCUS></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Abbreviated Lesson Name:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "abbreviatedName" NAME = "abbreviatedName" CLASS = "schoolDetails"
+							TITLE = "Enter a name (of max 10 characters) that will represent this lesson on the timetable."></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Colour:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<SELECT ID = "lessonColour" NAME = "lessonColour" CLASS = "colourSelect" ONCHANGE = "changeColour(this.id, this.value);"
+									TITLE = "Select a colour which will act as a background colour for this lesson on the timetable">
+							<OPTION SELECTED DISABLED HIDDEN VALUE = "not set">Please select a colour</OPTION>
+							<OPTION VALUE = "#FFFFFF" STYLE = "background-color:#FFFFFF"></OPTION>
+							<OPTION VALUE = "#848484" STYLE = "background-color:#848484"></OPTION>
+							<OPTION VALUE = "#5882FA" STYLE = "background-color:#5882FA"></OPTION>
+							<OPTION VALUE = "#0101DF" STYLE = "background-color:#0101DF"></OPTION>
+							<OPTION VALUE = "#81F781" STYLE = "background-color:#81F781"></OPTION>
+							<OPTION VALUE = "#088A08" STYLE = "background-color:#088A08"></OPTION>
+							<OPTION VALUE = "#F78181" STYLE = "background-color:#F78181"></OPTION>
+							<OPTION VALUE = "#FF0000" STYLE = "background-color:#FF0000"></OPTION>
+							<OPTION VALUE = "#F781F3" STYLE = "background-color:#F781F3"></OPTION>
+							<OPTION VALUE = "#DF01A5" STYLE = "background-color:#DF01A5"></OPTION>
+							<OPTION VALUE = "#F2F5A9" STYLE = "background-color:#F2F5A9"></OPTION>
+							<OPTION VALUE = "#FFFF00" STYLE = "background-color:#FFFF00"></OPTION>
+							<OPTION VALUE = "#CCCC00" STYLE = "background-color:#CCCC00"></OPTION>
+							<OPTION VALUE = "#FF8000" STYLE = "background-color:#FF8000"></OPTION>
+							<OPTION VALUE = "#81F7F3" STYLE = "background-color:#81F7F3"></OPTION>
+						</SELECT>
+						<SCRIPT>
+						changeColour("lessonColour", "not set");
+						</SCRIPT>
+					</TD>
+				</TR>
+			</TABLE>
+			<BR>
+			<INPUT TYPE = "BUTTON" TITLE = "Submit the new lesson details to the database for storage." ONCLICK = "storeNewLesson();" 
+				VALUE = "Submit New Lesson"></INPUT>
+		</FORM>
+	</DIV>
+	<BR>
+{% endblock %}
+
+{% block confirmation_windows %}
+<DIV CLASS = "confirmationWindow" HIDDEN>
+<BR>
+<BR>
+New Lesson Added Successfully
+</DIV>
+{% endblock %}

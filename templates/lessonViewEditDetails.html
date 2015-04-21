@@ -1,0 +1,329 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				14th February 2015
+	Purpose:			This page displays the view/edit lessons screen to the user. The user can select any lesson
+						that they wish and can edit any of the details associated with those lessons. The edited details
+						are stored if the user clicks "submit" or cancelled if they cancel and exit. Lessons can also be
+						removed via this screen.
+-->
+
+{% extends "masterHeadingMenuFooterPage.html" %}
+
+{% block common_jquery %}
+<SCRIPT>
+var availableLessons = [];
+
+$(document).ready(function(){ 	
+	// Display the lesson editing options to the user
+	$("#editLesson").click( function() {
+		$("#mainEditorWindow").css("height", "74%");
+		$("#removeThisLesson").finish().hide();
+		$("#noEditingSelected").finish().hide();
+		$("#editThisLesson").finish().show();
+	});
+	
+	// Display the remove lesson option to the user
+	$("#removeLesson").click( function() {
+		$("#mainEditorWindow").css("height", "65%");
+		$("#editThisLesson").finish().hide();
+		$("#noEditingSelected").finish().hide();
+		$("#removeThisLesson").finish().show();
+	});
+	
+	// Hide any of the context menus if the user clicks away from it
+	$(document).bind("mousedown", function (event) {
+		if (!$(event.target).parents("#mainEditorWindow").length > 0) {
+			resetEditorWindowToDefault();
+		}
+	});
+	
+	// Set the list of lesson names for the autocomplete feature of the search box
+	$("#entrySearchBox").autocomplete({
+				source: availableLessons,
+				select: function(event, ui) {
+					event.preventDefault();
+					$(this).val(ui.item.label);
+				}
+	}).autocomplete("widget").addClass("searchList");
+});
+
+// Populate the lesson editor window and show the editing options to the user
+function initialiseEditableData() {
+	$(".editableData").click( function() {
+		var element = $(this).next("input[type=hidden]");
+		var elementValue = $(element).attr("VALUE");
+		var individualAttr = elementValue.split(",");
+		document.getElementById("schoolLessonId").value = individualAttr[0];
+		document.getElementById("lessonId").value = individualAttr[1];
+		document.getElementById("nameOfLesson").value = individualAttr[2];
+		document.getElementById("selectedLesson").innerHTML = individualAttr[2];
+		document.getElementById("abbreviatedName").value = individualAttr[3];
+		changeColour("lessonColour", individualAttr[4]);
+		
+		$("#mainEditorWindow").css("height", "60%");
+		$("#mainEditorWindow").finish().show();
+		$("#noEditingSelected").finish().show();
+	});
+}
+
+// Search for the selected lesson name
+function searchForLesson() {
+	$.ajax({ url: "/searchForLesson", data: $('#searchForm').serialize(), type: 'POST', async: false, success: function(result) {
+						processSearchResult(result);
+					}});
+}
+
+// Store the edited lesson in the database
+function storeEditedLesson() {
+	$.ajax({ url: "/submitEditedLesson", data: $('#updatedLesson').serialize(), type: 'POST', async: false, success: function(result) {
+						if(result == "OK") {
+							$("#lessonUpdated").finish().show();
+							setTimeout(function () {
+								$("#lessonUpdated").finish().hide();
+								document.getElementById("entrySearchBox").value = "";
+								location.reload();
+							}, 2000);
+						} else {
+							alert(result);
+						}
+					}});
+}
+
+// Remove the selected lesson from the database
+function removeSelectedLesson() {
+	$.ajax({ url: "/removeLesson", data: $('#updatedLesson').serialize(), type: 'POST', async: false, success: function(result) {
+						if(result == "OK") {
+							$("#lessonRemoved").finish().show();
+							setTimeout(function () {
+								$("#lessonRemoved").finish().hide();
+								document.getElementById("entrySearchBox").value = "";
+								location.reload();
+							}, 2000);
+						} else {
+							alert("There was a problem processing this lesson removal request. Please try again later.");
+						}
+					}});
+}
+</SCRIPT>
+{% endblock %}
+
+{% block common_javascript %}
+<SCRIPT>
+// Change the colour in the colour selection box
+function changeColour(idOfElement, colourSelected) {
+	document.getElementById(idOfElement).style.backgroundColor = colourSelected;
+	document.getElementById("colourOfLesson").value = colourSelected;
+}
+
+// Set the default appearance options for the lesson selected
+function resetEditorWindowToDefault() {
+	document.getElementById("nameOfLesson").value = "";
+	document.getElementById("abbreviatedName").value = "";
+	document.getElementById("selectedLesson").innerHTML = "";
+	
+	$("#editThisLesson").finish().hide();
+	$("#removeThisLesson").finish().hide();
+	$("#mainEditorWindow").finish().hide();
+	$("#noEditingSelected").finish().hide();
+}
+
+// Output the result of the search to the user
+function processSearchResult(searchResultString) {
+	// Replace all of the obsolete characters in the string
+	searchResultString = replaceAll(searchResultString, "[", "");
+	searchResultString = replaceAll(searchResultString, "]", "");
+	searchResultString = replaceAll(searchResultString, "\"", "");
+	
+	// Split the result into an array of individual attributes and output them below the search bar
+	var splitResult = searchResultString.split(",");
+	var index = 0;
+	var namesDisplay = "<BR><TABLE CLASS = 'recordsDisplay'>";
+	namesDisplay += "<TR><TD CLASS = 'recordsHeading'>";
+	namesDisplay += "<P CLASS = 'tableHeading'>Click a Lesson to View/Edit/Remove</P>";
+	namesDisplay += "</TD></TR>";
+	if(splitResult.length == 1 && splitResult[0] == "pageLoader") {
+		namesDisplay += "<TR>";
+		namesDisplay += "<TD CLASS = 'recordsHeading'>";
+		namesDisplay += "<P>Please search for an existing lesson name.<BR>Matching lessons will then appear here.</P>";
+		namesDisplay += "</TD>";
+		namesDisplay += "</TR>";
+	} else if(splitResult.length == 1) {
+		namesDisplay += "<TR>";
+		namesDisplay += "<TD CLASS = 'recordsHeading'>";
+		namesDisplay += "<P>No lessons match your search criteria.<BR>Please try another lesson name.</P>";
+		namesDisplay += "</TD>";
+		namesDisplay += "</TR>";
+	} else {
+		while(index < splitResult.length) {
+			namesDisplay += "<TR>";
+			namesDisplay += "<TD CLASS = 'recordsHeading'>";
+			namesDisplay += "<P CLASS = 'editableData'>" + splitResult[index + 2].trim() + "</P>";
+			namesDisplay += "<INPUT TYPE = 'HIDDEN' ID = 'lesson" + index + "' NAME = 'lesson" + index + "' ";
+			namesDisplay += "VALUE = '" + splitResult[index].trim() + "," + splitResult[index + 1].trim() + "," + splitResult[index + 2].trim() + ",";
+			namesDisplay += splitResult[index + 3].trim() + "," + splitResult[index + 4].trim() + "'></INPUT>";
+			namesDisplay += "</TD>";
+			namesDisplay += "</TR>";
+			index += 5;
+		}
+	}
+	namesDisplay += "</TABLE><BR>";
+	document.getElementById("lessonsList").innerHTML = namesDisplay;
+	initialiseEditableData();
+}
+
+// Replace all of the characters specified with their specified replacements in the provided string
+function replaceAll(theString, theCharacter, theReplacement) {
+	while(theString.indexOf(theCharacter) >= 0) {
+		theString = theString.replace(theCharacter, theReplacement);
+	}
+	return theString;
+}
+</SCRIPT>
+{% endblock %}
+
+{% block main_body_content %}
+	{% for index in range(0, list_of_lessons.__len__()): %}
+		<SCRIPT>
+			availableLessons.push({ value: "", label: "{{ list_of_lessons[index].lessonName }}" });
+		</SCRIPT>
+	{% endfor %}
+	<DIV ALIGN = "CENTER">
+		<H2>View/Edit Your Lessons</H2>
+		<P>Enter the lesson name you wish to edit in the search box below.
+		<BR>To help you, a number of possible options based on your lesson name entry will
+		<BR>also appear as you type. When you have finished entering your lesson name, click
+		<BR>on the "Search" button to display all lessons matching this search.</P>
+		<BR>
+		<FORM ID = "searchForm" NAME = "searchForm">
+			<INPUT TYPE = "TEXT" ID = "entrySearchBox" NAME = "entrySearchBox" CLASS = "searchInput" AUTOFOCUS></INPUT> &nbsp;
+			<INPUT TYPE = "BUTTON" CLASS = "editorButton2" ONCLICK = "searchForLesson();" VALUE = "&nbsp;&nbsp;Search&nbsp;&nbsp;"></INPUT>
+		</FORM>
+		<BR>
+		<DIV ID = "lessonsList" NAME = "lessonsList"></DIV>
+		<SCRIPT>
+			processSearchResult("pageLoader");
+		</SCRIPT>
+	</DIV>
+{% endblock %}
+
+{% block additional_windows %}
+	<!-- This DIV draws the editing options for any selected lesson -->
+	<DIV ID = "mainEditorWindow" NAME = "mainEditorWindow" CLASS = "editorWindow" HIDDEN>
+		<H2 CLASS = "editorHeading">Lesson Editor</H2>
+		<H3 ID = "selectedLesson" NAME = "selectedLesson" CLASS = "editorSelectedRecord"></H3>
+		<P>Use the buttons below to select between
+		<BR>the lesson editor options and the lesson removal option.</P>
+		<BR>
+		<TABLE CLASS = "detailsEntry">
+			<TR>
+				<TD CLASS = "editorButtonDisplay">
+					<BUTTON TYPE = "BUTTON" ID = "editLesson" NAME = "editLesson" CLASS = "editorButton">View/Edit<BR>Lesson</BUTTON>
+				</TD>
+				<TD CLASS = "editorButtonDisplay">
+					<BUTTON TYPE = "BUTTON" ID = "removeLesson" NAME = "removeLesson" CLASS = "editorButton">Remove<BR>Lesson</BUTTON>
+				</TD>
+			</TR>
+		</TABLE>
+		<BR>
+		
+		<!-- Cancel Editor Screen Options -->
+		<DIV ID = "noEditingSelected" NAME = "noEditingSelected" CLASS = "innerEditingWindow" HIDDEN>
+			<P>If you wish to exit from the lesson editor, click outside
+			<BR>of the lesson editor window or use the button below.</P>
+			<INPUT TYPE = "BUTTON" TITLE = "Close this window." ONCLICK = "resetEditorWindowToDefault();" VALUE = "Cancel Lesson Editor"></INPUT>
+		</DIV>
+		
+		<!-- Lesson Editing Options -->
+		<DIV ID = "editThisLesson" NAME = "editThisLesson" CLASS = "innerEditingWindow" HIDDEN>
+			<FORM ID = "updatedLesson" NAME = "updatedLesson">
+				<P>Make changes to your lesson details in the fields below and
+				<BR>then submit your changes to save them.</P>
+				
+				<!-- Hidden input elements store data which the user cannot change -->
+				<INPUT TYPE = "HIDDEN" ID = "schoolLessonId" NAME = "schoolLessonId"></INPUT>
+				<INPUT TYPE = "HIDDEN" ID = "schoolId" NAME = "schoolId" VALUE = "{{ current_school_id }}"></INPUT>
+				<INPUT TYPE = "HIDDEN" ID = "lessonId" NAME = "lessonId"></INPUT>
+				<INPUT TYPE = "HIDDEN" ID = "colourOfLesson" NAME = "colourOfLesson"></INPUT>
+				
+				<!-- Table to display editing options -->
+				<TABLE CLASS = "detailsEntry">
+					<TR>
+						<TD CLASS = "detailsHeading">
+							Lesson Name:&nbsp;
+						</TD>
+						<TD CLASS = "detailsEntry">
+							&nbsp;<INPUT TYPE = "TEXT" ID = "nameOfLesson" NAME = "nameOfLesson" 
+								TITLE = "Enter the edited name for this lesson."></INPUT>
+						</TD>
+					</TR>
+					<TR>
+						<TD CLASS = "detailsHeading">
+							Abbreviated Name:&nbsp;
+						</TD>
+						<TD CLASS = "detailsEntry">
+							&nbsp;<INPUT TYPE = "TEXT" ID = "abbreviatedName" NAME = "abbreviatedName" 
+								TITLE = "Enter a name (of max 10 characters) that will represent this lesson on the timetable."></INPUT>
+						</TD>
+					</TR>
+					<TR>
+						<TD CLASS = "detailsHeading">
+							Colour:&nbsp;
+						</TD>
+						<TD CLASS = "detailsEntry">
+							&nbsp;<SELECT ID = "lessonColour" NAME = "lessonColour" CLASS = "editableColourSelect" ONCHANGE = "changeColour(this.id, this.value);"
+									TITLE = "Select a colour which will act as a background colour for this lesson on the timetable">
+								<OPTION VALUE = "#FFFFFF" STYLE = "background-color:#FFFFFF"></OPTION>
+								<OPTION VALUE = "#848484" STYLE = "background-color:#848484"></OPTION>
+								<OPTION VALUE = "#5882FA" STYLE = "background-color:#5882FA"></OPTION>
+								<OPTION VALUE = "#0101DF" STYLE = "background-color:#0101DF"></OPTION>
+								<OPTION VALUE = "#81F781" STYLE = "background-color:#81F781"></OPTION>
+								<OPTION VALUE = "#088A08" STYLE = "background-color:#088A08"></OPTION>
+								<OPTION VALUE = "#F78181" STYLE = "background-color:#F78181"></OPTION>
+								<OPTION VALUE = "#FF0000" STYLE = "background-color:#FF0000"></OPTION>
+								<OPTION VALUE = "#F781F3" STYLE = "background-color:#F781F3"></OPTION>
+								<OPTION VALUE = "#DF01A5" STYLE = "background-color:#DF01A5"></OPTION>
+								<OPTION VALUE = "#F2F5A9" STYLE = "background-color:#F2F5A9"></OPTION>
+								<OPTION VALUE = "#FFFF00" STYLE = "background-color:#FFFF00"></OPTION>
+								<OPTION VALUE = "#CCCC00" STYLE = "background-color:#CCCC00"></OPTION>
+								<OPTION VALUE = "#FF8000" STYLE = "background-color:#FF8000"></OPTION>
+								<OPTION VALUE = "#81F7F3" STYLE = "background-color:#81F7F3"></OPTION>
+							</SELECT>
+						</TD>
+					</TR>
+				</TABLE>
+				<BR>
+				<INPUT TYPE = "BUTTON" TITLE = "Submit the edited lesson details." ONCLICK = "storeEditedLesson();" VALUE = "Submit Changes"></INPUT>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<INPUT TYPE = "BUTTON" TITLE = "Close this window and cancel all changes." ONCLICK = "resetEditorWindowToDefault();" 
+					VALUE = "Cancel all Changes"></INPUT>
+			</FORM>
+		</DIV>
+		
+		<!-- Lesson Removal Option -->
+		<DIV ID = "removeThisLesson" NAME = "removeThisLesson" CLASS = "innerEditingWindow" HIDDEN>
+			<P>Are you sure that you wish to remove this lesson
+			<BR>from the system? This lesson can no longer be
+			<BR>scheduled on any timetables after removal.</P>
+			<BR>
+			<INPUT TYPE = "BUTTON" TITLE = "Remove this lesson." ONCLICK = "removeSelectedLesson();" VALUE = "Remove this Lesson"></INPUT>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<INPUT TYPE = "BUTTON" TITLE = "Close this window and cancel all changes." ONCLICK = "resetEditorWindowToDefault();" 
+				VALUE = "Cancel all Changes"></INPUT>
+		</DIV>
+	</DIV>
+{% endblock %}
+
+{% block confirmation_windows %}
+<DIV ID = "lessonUpdated" CLASS = "confirmationWindow" HIDDEN>
+	<BR>
+	<BR>
+	Lesson Details Updated Successfully
+</DIV>
+
+<DIV ID = "lessonRemoved" CLASS = "confirmationWindow" HIDDEN>
+	<BR>
+	<BR>
+	Lesson Removed Successfully
+</DIV>
+{% endblock %}

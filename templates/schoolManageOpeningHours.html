@@ -1,0 +1,235 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				13th February 2015
+	Purpose:			This page displays the manage opening hours screen for the current school. Here, the user can set
+						the schools opening hours for all seven days in the week.
+-->
+
+{% extends "masterHeadingMenuFooterPage.html" %}
+
+
+{% block common_jquery %}
+<SCRIPT>
+// Store the edited school opening hours
+function storeEditedOpeningHours() {
+	enableAllTimeFields();
+	$.ajax({ url: "/updateSchoolOpeningHours", data: $('FORM').serialize(), type: 'POST', async: false, success: function(result) {
+						if(result == "OK") {
+							$(".confirmationWindow").finish().show();
+							setTimeout(function () {
+								$(".confirmationWindow").finish().hide();
+							}, 2000);
+						} else {
+							alert(result);
+						}
+					}});
+	disableClosedTimeFields();
+}
+</SCRIPT>
+{% endblock %}
+
+{% block common_javascript %}
+<SCRIPT>
+// When the open/closed options are interacted with - this method enables or disables the opening and closing time fields
+function enableOrDisableTimeOptions(theId) {
+	numericalValue = theId.substring(theId.length - 1);
+	
+	var identifierOpen = "openingTimeSelect";
+	var identifierClose = "closingTimeSelect";
+	var idStringOpen = identifierOpen + numericalValue;
+	var idStringClose = identifierClose + numericalValue;
+	
+	if(document.getElementById(theId).value == "open") {	
+		document.getElementById(idStringOpen).disabled = false;
+		document.getElementById(idStringClose).disabled = false;
+	} else {
+		document.getElementById(idStringOpen).disabled = true;
+		document.getElementById(idStringClose).disabled = true;
+	}
+}
+
+// Set the selected index of a HTML select box via its required index position
+function setSelectedIndex(identification, index) {
+	document.getElementById(identification).selectedIndex = index;
+}
+
+// Set the selected index of a HTML select box via its required value (also enable time fields after doing so)
+function setSelectedValue(identification, value) {
+	document.getElementById(identification).value = value;
+	
+	var indexPosition = identification.charAt(identification.length - 1);
+	document.getElementById("openingTimeSelect" + indexPosition).disabled = false;
+	document.getElementById("closingTimeSelect" + indexPosition).disabled = false;
+}
+
+// Enable all of the time fields
+function enableAllTimeFields() {
+	for(index = 0; index < 7; index ++) {
+		document.getElementById("openingTimeSelect" + index).disabled = false;
+		document.getElementById("closingTimeSelect" + index).disabled = false;
+	}
+}
+
+// Disable only the time fields that have been set to "Closed"
+function disableClosedTimeFields() {
+	for(index = 0; index < 7; index ++) {
+		var selectElement = document.getElementById("openOrClosed" + index);
+		var setting = selectElement.options[selectElement.selectedIndex].text;
+		if(setting == "Closed") {
+			document.getElementById("openingTimeSelect" + index).disabled = true;
+			document.getElementById("closingTimeSelect" + index).disabled = true;
+		}
+	}
+}
+</SCRIPT>
+{% endblock %}
+
+{% block main_body_content %}
+	<DIV ALIGN = "CENTER">
+		<H2>Manage Your Schools Opening Hours</H2>
+		<P>Use the options below to set the opening hours for your school for each week.
+		<BR>Each day has a setting for "Open" or "Closed" and times can only be edited when the school has been set to "Open".</P>
+		<FORM>
+			<TABLE CLASS = "openingHoursDisplay">
+				<TR>
+					<TD CLASS = "openingHoursHeadings">
+						<P CLASS = "tableHeading">Weekday</P>
+					</TD>
+					<TD CLASS = "openingHoursHeadings">
+						<P CLASS = "tableHeading">Open/Closed</P>
+					</TD>
+					<TD CLASS = "openingHoursHeadings">
+						<P CLASS = "tableHeading">Opening Time</P>
+					</TD>
+					<TD CLASS = "openingHoursHeadings">
+						<P CLASS = "tableHeading">Closing Time</P>
+					</TD>
+				</TR>
+				{% for index in range(0, list_of_weekdays.__len__()): %}
+					<TR>
+						<TD CLASS = "openingHoursHeadings">
+							<P CLASS = "tableDetails">{{ list_of_weekdays[index].weekdayName }}</P>
+						</TD>
+						<TD CLASS = "openingHoursHeadings">
+							<P CLASS = "tableDetails">
+								<SELECT ID = "openOrClosed{{index}}" NAME = "openOrClosed{{index}}"
+									CLASS = "timeSelect" ONCHANGE = "enableOrDisableTimeOptions(this.id)">
+								{% for eachHour in list_of_opening_hours: %}
+									{% if eachHour.weekdayId == list_of_weekdays[index].weekdayId: %}
+										{% if eachHour.timeId == 0: %}
+											<OPTION VALUE = "open">Open</OPTION>
+											<OPTION VALUE = "closed" SELECTED = "selected">Closed</OPTION>
+										{% else: %}
+											<OPTION VALUE = "open" SELECTED = "selected">Open</OPTION>
+											<OPTION VALUE = "closed">Closed</OPTION>
+										{% endif %}
+									{% endif %}
+								{% endfor %}
+								</SELECT>
+							</P>
+						</TD>
+						{% for eachHour in list_of_opening_hours: %}
+							{% if eachHour.weekdayId == list_of_weekdays[index].weekdayId: %}
+								<TD CLASS = "openingHoursHeadings">
+									<P CLASS = "tableDetails">
+										<SELECT NAME = "openingTimeSelect{{index}}" ID = "openingTimeSelect{{index}}" CLASS = "timeSelect" DISABLED>
+											<OPTION VALUE = "0:00:00">00:00</OPTION>
+											<OPTION VALUE = "1:00:00">01:00</OPTION>
+											<OPTION VALUE = "2:00:00">02:00</OPTION>
+											<OPTION VALUE = "3:00:00">03:00</OPTION>
+											<OPTION VALUE = "4:00:00">04:00</OPTION>
+											<OPTION VALUE = "5:00:00">05:00</OPTION>
+											<OPTION VALUE = "6:00:00">06:00</OPTION>
+											<OPTION VALUE = "7:00:00">07:00</OPTION>
+											<OPTION VALUE = "8:00:00">08:00</OPTION>
+											<OPTION VALUE = "9:00:00">09:00</OPTION>
+											<OPTION VALUE = "10:00:00">10:00</OPTION>
+											<OPTION VALUE = "11:00:00">11:00</OPTION>
+											<OPTION VALUE = "12:00:00">12:00</OPTION>
+											<OPTION VALUE = "13:00:00">13:00</OPTION>
+											<OPTION VALUE = "14:00:00">14:00</OPTION>
+											<OPTION VALUE = "15:00:00">15:00</OPTION>
+											<OPTION VALUE = "16:00:00">16:00</OPTION>
+											<OPTION VALUE = "17:00:00">17:00</OPTION>
+											<OPTION VALUE = "18:00:00">18:00</OPTION>
+											<OPTION VALUE = "19:00:00">19:00</OPTION>
+											<OPTION VALUE = "20:00:00">20:00</OPTION>
+											<OPTION VALUE = "21:00:00">21:00</OPTION>
+											<OPTION VALUE = "22:00:00">22:00</OPTION>
+											<OPTION VALUE = "23:00:00">23:00</OPTION>
+											<OPTION VALUE = "24:00:00">24:00</OPTION>
+										</SELECT>
+									</P>
+								</TD>
+								{% if eachHour.timeId == 0 %}
+									<SCRIPT>setSelectedIndex("openingTimeSelect{{index}}", 9);</SCRIPT>
+								{% else %}
+									{% for eachTime in list_of_times: %}
+										{% if eachTime.timeId == eachHour.timeId %}
+											<SCRIPT>setSelectedValue("openingTimeSelect{{index}}", "{{eachTime.startTime}}");</SCRIPT>
+										{% endif %}
+									{% endfor %}
+								{% endif %}
+							{% endif %}					
+							{% if eachHour.weekdayId == list_of_weekdays[index].weekdayId: %}
+								<TD CLASS = "openingHoursHeadings">
+									<P CLASS = "tableDetails">
+										<SELECT NAME = "closingTimeSelect{{index}}" ID = "closingTimeSelect{{index}}" CLASS = "timeSelect" DISABLED>
+											<OPTION VALUE = "0:00:00">00:00</OPTION>
+											<OPTION VALUE = "1:00:00">01:00</OPTION>
+											<OPTION VALUE = "2:00:00">02:00</OPTION>
+											<OPTION VALUE = "3:00:00">03:00</OPTION>
+											<OPTION VALUE = "4:00:00">04:00</OPTION>
+											<OPTION VALUE = "5:00:00">05:00</OPTION>
+											<OPTION VALUE = "6:00:00">06:00</OPTION>
+											<OPTION VALUE = "7:00:00">07:00</OPTION>
+											<OPTION VALUE = "8:00:00">08:00</OPTION>
+											<OPTION VALUE = "9:00:00">09:00</OPTION>
+											<OPTION VALUE = "10:00:00">10:00</OPTION>
+											<OPTION VALUE = "11:00:00">11:00</OPTION>
+											<OPTION VALUE = "12:00:00">12:00</OPTION>
+											<OPTION VALUE = "13:00:00">13:00</OPTION>
+											<OPTION VALUE = "14:00:00">14:00</OPTION>
+											<OPTION VALUE = "15:00:00">15:00</OPTION>
+											<OPTION VALUE = "16:00:00">16:00</OPTION>
+											<OPTION VALUE = "17:00:00">17:00</OPTION>
+											<OPTION VALUE = "18:00:00">18:00</OPTION>
+											<OPTION VALUE = "19:00:00">19:00</OPTION>
+											<OPTION VALUE = "20:00:00">20:00</OPTION>
+											<OPTION VALUE = "21:00:00">21:00</OPTION>
+											<OPTION VALUE = "22:00:00">22:00</OPTION>
+											<OPTION VALUE = "23:00:00">23:00</OPTION>
+											<OPTION VALUE = "24:00:00">24:00</OPTION>
+										</SELECT>
+									</P>
+								</TD>
+								{% if eachHour.timeId == 0 %}
+									<SCRIPT>setSelectedIndex("closingTimeSelect{{index}}", 17);</SCRIPT>
+								{% else %}
+									{% for eachTime in list_of_times: %}
+										{% if eachTime.timeId == eachHour.timeId %}
+											<SCRIPT>setSelectedValue("closingTimeSelect{{index}}", "{{eachTime.endTime}}");</SCRIPT>
+										{% endif %}
+									{% endfor %}
+								{% endif %}
+							{% endif %}
+						{% endfor %}
+					</TR>
+				{% endfor %}
+			</TABLE>
+			<BR>
+			<INPUT TYPE = "BUTTON" TITLE = "Permanently save these opening hours for your school."
+				ONCLICK = "storeEditedOpeningHours();" VALUE = "Save Opening Hours"></INPUT>
+		</FORM>
+	</DIV>
+	<BR>
+{% endblock %}
+
+{% block confirmation_windows %}
+<DIV CLASS = "confirmationWindow" HIDDEN>
+<BR>
+<BR>
+Opening Hours Updated Successfully
+</DIV>
+{% endblock %}

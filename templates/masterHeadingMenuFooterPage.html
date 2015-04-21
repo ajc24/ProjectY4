@@ -1,0 +1,141 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				20th March 2015
+	Purpose:			Displays the main footer at the end of the main heading and menu page.
+-->
+
+{% extends "masterHeadingMenuPage.html" %}
+
+{% block footer_javascript %}
+<SCRIPT>
+// Display the footer content for any page
+function displayFooterContent(allContent, displayNumber) {
+	var headingId = "footerHeading" + displayNumber;
+	var contentId = "footerContent" + displayNumber;
+	
+	var headingDisplay = allContent[0];
+	var contentDisplay = "";
+	var index = 1;
+	while(index < allContent.length) {
+		contentDisplay += allContent[index];
+		if(index < (allContent.length - 1)) {
+			contentDisplay += "<BR>";
+		}
+		index ++;
+	}
+	
+	document.getElementById(headingId).innerHTML = headingDisplay;
+	document.getElementById(contentId).innerHTML = contentDisplay;
+}
+</SCRIPT>
+{% endblock %}
+
+{% block main_body_footer %}
+	<BR>
+	<DIV CLASS = "footer">
+		<TABLE CLASS = "footerSpacing">
+		</TABLE>
+		
+		<!-- Footer Tutorial Displays -->
+		<TABLE CLASS = "footerContent">
+			<TR>
+				<TD CLASS = "tutorialDisplay">
+					<DIV CLASS = "tutorialHeading">
+						<H2 ID = "footerHeading1" NAME = "footerHeading1"></H2>
+					</DIV>
+				</TD>
+			</TR>
+			<TR>
+				<TD CLASS = "tutorialDisplay">
+					<DIV CLASS = "tutorialContent">
+						<P ID = "footerContent1" NAME = "footerContent1" CLASS = "tutorialData">
+						</P>
+					</DIV>
+				</TD>
+			</TR>
+		</TABLE>
+		<TABLE CLASS = "footerContent">
+			<TR>
+				<TD CLASS = "tutorialDisplay">
+					<DIV CLASS = "tutorialHeading">
+						<H2 ID = "footerHeading2" NAME = "footerHeading2"></H2>
+					</DIV>
+				</TD>
+			</TR>
+			<TR>
+				<TD CLASS = "tutorialDisplay">
+					<DIV CLASS = "tutorialContent">
+						<P ID = "footerContent2" NAME = "footerContent2" CLASS = "tutorialData">
+						</P>
+					</DIV>
+				</TD>
+			</TR>
+		</TABLE>
+		<TABLE CLASS = "footerContent">
+			<TR>
+				<TD CLASS = "tutorialDisplay">
+					<DIV CLASS = "tutorialHeading">
+						<H2 ID = "footerHeading3" NAME = "footerHeading3"></H2>
+					</DIV>
+				</TD>
+			</TR>
+			<TR>
+				<TD CLASS = "tutorialDisplay">
+					<DIV CLASS = "tutorialContent">
+						<P ID = "footerContent3" NAME = "footerContent3" CLASS = "tutorialData">
+						</P>
+					</DIV>
+				</TD>
+			</TR>
+		</TABLE>
+		<TABLE CLASS = "footerContent">
+			<TR>
+				<TD CLASS = "tutorialDisplay">
+					<DIV CLASS = "tutorialHeading">
+						<H2 ID = "footerHeading4" NAME = "footerHeading4"></H2>
+					</DIV>
+				</TD>
+			</TR>
+			<TR>
+				<TD CLASS = "tutorialDisplay">
+					<DIV CLASS = "tutorialContent">
+						<P ID = "footerContent4" NAME = "footerContent4" CLASS = "tutorialData">
+						</P>
+					</DIV>
+				</TD>
+			</TR>
+		</TABLE>
+		<TABLE CLASS = "footerSpacing">
+		</TABLE>
+	</DIV>
+	<BR CLASS = "clearFloat">
+	<BR>
+	<DIV CLASS = "footerLeft">
+		4th Year Project: BSc(Hons) in Software Development
+		<BR>Anthony Cox - C00162988
+	</DIV>
+	<DIV CLASS = "footerRight">
+		Template by <A TARGET = "_blank" HREF = "http://www.os-templates.com/" TITLE = "Free Website Templates">OS Templates</A>
+	</DIV>
+	<BR CLASS = "clearFloat">
+	<BR>
+	
+	<SCRIPT>
+		// Display the footer content on the page
+		var footerOne = "{{ footer_one }}"
+		var footerTwo = "{{ footer_two }}"
+		var footerThree = "{{ footer_three }}"
+		var footerFour = "{{ footer_four }}"
+		
+		var allDisplayOne = footerOne.split("~");
+		var allDisplayTwo = footerTwo.split("~");
+		var allDisplayThree = footerThree.split("~");	
+		var allDisplayFour = footerFour.split("~");
+		
+		displayFooterContent(allDisplayOne, 1);
+		displayFooterContent(allDisplayTwo, 2);
+		displayFooterContent(allDisplayThree, 3);
+		displayFooterContent(allDisplayFour, 4);
+	</SCRIPT>
+{% endblock %}

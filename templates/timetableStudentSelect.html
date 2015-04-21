@@ -1,0 +1,79 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				14th April 2015
+	Purpose:			This page allows an administrator to select a student in order
+						to view the students timetable.
+-->
+
+{% extends "commonPersonSelection.html" %}
+
+{% block additional_jquery %}
+<SCRIPT>
+// Search for the selected teacher name
+function searchForStudent() {
+	$.ajax({ url: "/searchForStudent", data: $('#searchForm').serialize(), type: 'POST', async: false, success: function(result) {
+						processSearchResult(result);
+					}});
+}
+
+// Load the selected teachers timetable
+function loadStudentTimetable() {
+	$.ajax({ url: "/loadStudentSchoolTimetable", data: $('#selectedStudent').serialize(), type: 'POST', async: false, success: function(result) {
+						if(result == "OK") {
+							$("#loadingTimetable").finish().show();
+							window.location.replace("/viewAllTimetables")
+						} else {
+							alert("There was an error with this timetable selection. Please try again later.");
+						}
+					}});
+} 
+
+// Initialise newly created DOM elements that populate the person editor window and show the editing options to the user
+function initialiseEditableData() {
+	$(".editableData").click( function() {
+		var element = $(this).next("input[type=hidden]");
+		var elementValue = $(element).attr("VALUE");
+		var individualAttr = elementValue.split(",");
+		document.getElementById("personId").value = individualAttr[0];
+		
+		loadStudentTimetable();
+	});
+}
+</SCRIPT>
+{% endblock %}
+
+{% block main_body_content %}
+	{% for index in range(0, list_of_persons.__len__()): %}
+		<SCRIPT>
+			availablePersons.push({ value: "", label: "{{list_of_persons[index].firstName}} {{list_of_persons[index].surname}}" });
+		</SCRIPT>
+	{% endfor %}
+	<DIV ALIGN = "CENTER">
+		<H2>View a Student Timetable</H2>
+		<P>Enter the student name in the search box below. To help you, a number of possible 
+		<BR>options based on your student name entry will also appear as you type. When you 
+		<BR>have finished entering your student name, click on the "Search" button to display 
+		<BR>all students matching this search. Click any of the names to view their timetable.</P>
+		<BR>
+		<FORM ID = "searchForm" NAME = "searchForm">
+			<INPUT TYPE = "TEXT" ID = "searchEntry" NAME = "searchEntry" CLASS = "searchInput" AUTOFOCUS></INPUT>&nbsp;
+			<INPUT TYPE = "BUTTON" CLASS = "editorButton2" ONCLICK = "searchForStudent();" VALUE = "&nbsp;&nbsp;Search&nbsp;&nbsp;"></INPUT>
+		</FORM>
+		<DIV ID = "searchResults" NAME = "searchResults"></DIV>
+		<SCRIPT>
+			processSearchResult("pageLoader");
+		</SCRIPT>
+	</DIV>
+	<FORM ID = "selectedStudent" NAME = "selectedStudent">
+		<INPUT TYPE = "HIDDEN" ID = "personId" NAME = "personId"></INPUT>
+	</FORM>
+{% endblock %}
+
+{% block confirmation_windows %}
+<DIV ID = "loadingTimetable" CLASS = "confirmationWindow" HIDDEN>
+	<BR>Loading Teacher Timetable
+	<BR>
+	<BR>Please Wait
+</DIV>
+{% endblock %}

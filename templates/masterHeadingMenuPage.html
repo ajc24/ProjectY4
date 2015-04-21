@@ -1,0 +1,389 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				14th February 2015
+	Purpose:			Displays the main heading and menu bar to the user. Each menu bar option also has its
+						own individual set of additional menu options which are displayed to the user when they left or
+						right click on any of the options.
+-->
+
+{% extends "masterCSSJQueryPage.html" %}
+
+{% block menu_bar_jquery %}
+<SCRIPT>
+$(document).ready(function(){ 
+	// Display the school management menu if the user left or right clicks on the School option
+	$("#schoolManagementMenu").click( function(event) {
+		event.preventDefault();
+		displayContextMenu("school", parseInt(event.pageX), event.pageY);
+	});
+	
+	$("#schoolManagementMenu").bind("contextmenu", function(event) {
+		event.preventDefault();
+		displayContextMenu("school", event.pageX, event.pageY);
+	});
+	
+	// Display the user accounts management menu if the user left or right clicks on the Users option
+	$("#userAccountsManagementMenu").click( function(event) {
+		event.preventDefault();
+		displayContextMenu("users", parseInt(event.pageX), event.pageY);
+	});
+	
+	$("#userAccountsManagementMenu").bind("contextmenu", function(event) {
+		event.preventDefault();
+		displayContextMenu("users", event.pageX, event.pageY);
+	});
+	
+	// Display the lesson management menu if the user left or right clicks on the Lessons option
+	$("#lessonManagementMenu").click( function(event) {
+		event.preventDefault();
+		displayContextMenu("lessons", event.pageX, event.pageY);
+	});
+	
+	$("#lessonManagementMenu").bind("contextmenu", function(event) {
+		event.preventDefault();
+		displayContextMenu("lessons", event.pageX, event.pageY);
+	});
+	
+	// Display the student management menu if the user left or right clicks on the Students option
+	$("#studentManagementMenu").click( function(event) {
+		event.preventDefault();
+		displayContextMenu("students", event.pageX, event.pageY);
+	});
+	
+	$("#studentManagementMenu").bind("contextmenu", function(event) {
+		event.preventDefault();
+		displayContextMenu("students", event.pageX, event.pageY);
+	});
+	
+	// Display the group management menu if the user left or right clicks on the Ensembles option
+	$("#ensembleManagementMenu").click( function(event) {
+		event.preventDefault();
+		displayContextMenu("ensembles", event.pageX, event.pageY);
+	});
+	
+	$("#ensembleManagementMenu").bind("contextmenu", function(event) {
+		event.preventDefault();
+		displayContextMenu("ensembles", event.pageX, event.pageY);
+	});
+	
+	// Display the teacher management menu if the user left or right clicks on the Teacher option
+	$("#teacherManagementMenu").click( function(event) {
+		event.preventDefault();
+		displayContextMenu("teachers", event.pageX, event.pageY);
+	});
+	
+	$("#teacherManagementMenu").bind("contextmenu", function(event) {
+		event.preventDefault();
+		displayContextMenu("teachers", event.pageX, event.pageY);
+	});
+	
+	// Display the classroom management menu if the user left or right clicks on the Classrooms option
+	$("#classroomManagementMenu").click( function(event) {
+		event.preventDefault();
+		displayContextMenu("classes", event.pageX, event.pageY);
+	});
+	
+	$("#classroomManagementMenu").bind("contextmenu", function(event) {
+		event.preventDefault();
+		displayContextMenu("classes", event.pageX, event.pageY);
+	});
+	
+	// Display the timetable management menu if the user left or right clicks on the Timetable option
+	$("#timetableManagementMenu").click( function(event) {
+		event.preventDefault();
+		displayContextMenu("timetables", event.pageX, event.pageY);
+	});
+	
+	$("#timetableManagementMenu").bind("contextmenu", function(event) {
+		event.preventDefault();
+		displayContextMenu("timetables", event.pageX, event.pageY);
+	});
+	
+	// Hide any of the context menus if the user clicks away from it
+	$(document).bind("mousedown", function (event) {
+		if (!$(event.target).parents("#schoolManagementMenuDisplay").length > 0) {
+			$("#schoolManagementMenuDisplay").finish().hide(100);
+		}
+		
+		if (!$(event.target).parents("#userAccountsMenuDisplay").length > 0) {
+			$("#userAccountsMenuDisplay").finish().hide(100);
+		}
+		
+		if (!$(event.target).parents("#lessonManagementMenuDisplay").length > 0) {
+			$("#lessonManagementMenuDisplay").finish().hide(100);
+		}
+		
+		if (!$(event.target).parents("#studentManagementMenuDisplay").length > 0) {
+			$("#studentManagementMenuDisplay").finish().hide(100);
+		}
+		
+		if (!$(event.target).parents("#ensembleManagementMenuDisplay").length > 0) {
+			$("#ensembleManagementMenuDisplay").finish().hide(100);
+		}
+		
+		if (!$(event.target).parents("#teacherManagementMenuDisplay").length > 0) {
+			$("#teacherManagementMenuDisplay").finish().hide(100);
+		}
+		
+		if (!$(event.target).parents("#classroomManagementMenuDisplay").length > 0) {
+			$("#classroomManagementMenuDisplay").finish().hide(100);
+		}
+		
+		if (!$(event.target).parents("#timetableManagementMenuDisplay").length > 0) {
+			$("#timetableManagementMenuDisplay").finish().hide(100);
+		}
+	});
+});
+
+// Display the context menu triggered by the user
+function displayContextMenu(menuName, xPos, yPos) {
+	switch(menuName) {
+		case "school":		$("#schoolManagementMenuDisplay").finish().show(100).		
+							css({
+									top: "" + yPos + "px",
+									left: "" + xPos + "px"
+								});
+							break;
+		case "users":		$("#userAccountsMenuDisplay").finish().show(100).
+							css({
+									top: "" + yPos + "px",
+									left: "" + xPos + "px"
+								});
+							break;
+		case "lessons":		$("#lessonManagementMenuDisplay").finish().show(100).		
+							css({
+									top: "" + yPos + "px",
+									left: "" + xPos + "px"
+								});
+							break;
+		case "students":	$("#studentManagementMenuDisplay").finish().show(100).		
+							css({
+									top: "" + yPos + "px",
+									left: "" + xPos + "px"
+								});
+							break;
+		case "ensembles":	var elementWidth = $("#ensembleManagementMenuDisplay").width();
+							xPos -= elementWidth;
+							$("#ensembleManagementMenuDisplay").finish().show(100).		
+							css({
+									top: "" + yPos + "px",
+									left: "" + xPos + "px"
+								});
+							break;
+		case "teachers":	var elementWidth = $("#teacherManagementMenuDisplay").width();
+							xPos -= elementWidth;
+							$("#teacherManagementMenuDisplay").finish().show(100).		
+							css({
+									top: "" + yPos + "px",
+									left: "" + xPos + "px"
+								});
+							break;
+		case "classes":		var elementWidth = $("#classroomManagementMenuDisplay").width();
+							xPos -= elementWidth;
+							$("#classroomManagementMenuDisplay").finish().show(100).		
+							css({
+									top: "" + yPos + "px",
+									left: "" + xPos + "px"
+								});
+							break;
+		case "timetables":	var elementWidth = $("#timetableManagementMenuDisplay").width();
+							xPos -= elementWidth;
+							$("#timetableManagementMenuDisplay").finish().show(100).		
+							css({
+									top: "" + yPos + "px",
+									left: "" + xPos + "px"
+								});
+							break;
+	}
+} 
+
+// Present the "Please Wait" message to the user if they choose to view their timetable
+function loadMyTimetable() {
+	$("#loadingYourTimetable").finish().show();
+	window.location.replace("/viewAllTimetables")
+}
+</SCRIPT>
+{% endblock %}
+
+{% block main_heading_and_menu_bar %}
+	<DIV CLASS = "headingLeft">
+		<BR>
+		<BR>
+		<H1 CLASS = "mainHeading">
+			Music School Manager
+		</H1>
+		<P CLASS = "mainSubtitle">
+			<I>An open-source music school timetable management system.</I>
+		</P>
+		<BR>
+		<BR>
+	</DIV>
+	<DIV CLASS = "headingRight">
+		<BR>
+		{% if logged_in == False: %}
+			<DIV ALIGN = "CENTER" CLASS = "loginName">
+				You have yet to log in:<BR>
+				<P CLASS = "loginName">Please log in to access our system</P>
+			</DIV>
+		{% else: %}	
+			<DIV ALIGN = "CENTER" CLASS = "loginName">
+				You are logged in:<BR>
+				<P CLASS = "loginName">{{ login_id }}: {{ school_name }}</P>
+			</DIV>
+			<DIV CLASS = "headingOptions">
+				<BR>
+				<A HREF = "{{ about_this_project_url }}">&nbsp;&nbsp;About This Project&nbsp;&nbsp;</A>&nbsp;&nbsp;|&nbsp;
+				<A HREF = "{{ log_out_url }}">&nbsp;&nbsp;Logout&nbsp;&nbsp;</A>
+				<BR>
+			</DIV>
+		{% endif %}
+		<BR>
+	</DIV>
+	<BR CLASS = "clearFloat">
+	<BR>
+	<BR>
+	<BR>
+	<BR>
+	<BR>
+	<BR>
+	<BR>
+	<DIV CLASS = "menuBar">
+		{% if logged_in == True: %}
+			<A HREF = "{{ home_page_url }}" CLASS = "menuLink">&nbsp;&nbsp;Home&nbsp;&nbsp;</A>
+			&nbsp;&nbsp;&nbsp;&nbsp;
+			<A ID = "userAccountsManagementMenu" CLASS = "menuLink">&nbsp;&nbsp;Accounts&nbsp;&nbsp;</A>
+			&nbsp;&nbsp;&nbsp;&nbsp;
+			{% if account_type == "Administrator": %}
+				<A ID = "schoolManagementMenu" CLASS = "menuLink">&nbsp;&nbsp;School&nbsp;&nbsp;</A>
+				&nbsp;&nbsp;&nbsp;&nbsp;
+				<A ID = "lessonManagementMenu" CLASS = "menuLink">&nbsp;&nbsp;Lessons&nbsp;&nbsp;</A>
+				&nbsp;&nbsp;&nbsp;&nbsp;
+				<A ID = "studentManagementMenu" CLASS = "menuLink">&nbsp;&nbsp;Students&nbsp;&nbsp;</A>
+				&nbsp;&nbsp;&nbsp;&nbsp;
+				<A ID = "ensembleManagementMenu" CLASS = "menuLink">&nbsp;&nbsp;Ensembles&nbsp;&nbsp;</A>
+				&nbsp;&nbsp;&nbsp;&nbsp;
+				<A ID = "teacherManagementMenu" CLASS = "menuLink">&nbsp;&nbsp;Teachers&nbsp;&nbsp;</A>
+				&nbsp;&nbsp;&nbsp;&nbsp;
+				<A ID = "classroomManagementMenu" CLASS = "menuLink">&nbsp;&nbsp;Classrooms&nbsp;&nbsp;</A>
+				&nbsp;&nbsp;&nbsp;&nbsp;
+			{% endif %}
+			<A ID = "timetableManagementMenu" CLASS = "menuLink">&nbsp;&nbsp;Timetables&nbsp;&nbsp;</A>
+		{% endif %}
+	</DIV>
+	<BR>
+	<BR>
+	<BR>
+	
+	<!-- List of options for the school management menu -->
+	<UL ID = "schoolManagementMenuDisplay" CLASS = "menuBarContextMenu" HIDDEN>
+		<LI>
+			<A HREF = "{{ add_new_location_url }}" CLASS = "contextMenuLink">&nbsp;&nbsp;Add a new location to your school&nbsp;&nbsp;</A>
+		</LI>
+		<LI>
+			<A HREF = "{{ edit_school_details_url }}" CLASS = "contextMenuLink">&nbsp;&nbsp;View/Edit your school details&nbsp;&nbsp;</A>
+		</LI>
+		<LI>
+			<A HREF = "{{ edit_opening_hours_url }}" CLASS = "contextMenuLink">&nbsp;&nbsp;Manage your schools opening hours&nbsp;&nbsp;</A>
+		</LI>
+		<LI>
+			<A HREF = "{{ manage_locations_url }}" CLASS = "contextMenuLink">&nbsp;&nbsp;Manage your schools locations&nbsp;&nbsp;</A>
+		</LI>
+	</UL>
+	
+	<!-- List of options for the school management menu -->
+	<UL ID = "userAccountsMenuDisplay" CLASS = "menuBarContextMenu" HIDDEN>
+		<LI>
+			<A HREF = "{{ manage_your_account_url }}" CLASS = "contextMenuLink">&nbsp;&nbsp;Change your account password&nbsp;&nbsp;</A>
+		</LI>
+		{% if account_type == "Administrator": %}
+			<LI>
+				<A HREF = "{{ manage_teacher_accounts_url }}" CLASS = "contextMenuLink">&nbsp;&nbsp;Manage your teachers accounts&nbsp;&nbsp;</A>
+			</LI>
+			<LI>
+				<A HREF = "{{ manage_student_accounts_url }}" CLASS = "contextMenuLink">&nbsp;&nbsp;Manage your students accounts&nbsp;&nbsp;</A>
+			</LI>
+		{% endif %}
+	</UL>
+	
+	<!-- List of options for the lessons management menu -->
+	<UL ID = "lessonManagementMenuDisplay" CLASS = "menuBarContextMenu" HIDDEN>
+		<LI>
+			<A HREF = "{{ add_new_lesson_url }}" CLASS = "contextMenuLink">&nbsp;&nbsp;Add a new lesson&nbsp;&nbsp;</A>
+		</LI>
+		<LI>
+			<A HREF = "{{ view_edit_lessons_url }}" CLASS = "contextMenuLink">&nbsp;&nbsp;View/Edit your lessons&nbsp;&nbsp;</A>
+		</LI>
+	</UL>
+	
+	<!-- List of options for the student management menu -->
+	<UL ID = "studentManagementMenuDisplay" CLASS = "menuBarContextMenu" HIDDEN>
+		<LI>
+			<A HREF = "{{ add_new_student_url }}" CLASS = "contextMenuLink">&nbsp;&nbsp;Add a new student&nbsp;&nbsp;</A>
+		</LI>
+		<LI>
+			<A HREF = "{{ view_edit_students_url }}" CLASS = "contextMenuLink">&nbsp;&nbsp;View/Edit your students&nbsp;&nbsp;</A>
+		</LI>
+	</UL>
+	
+	<!-- List of options for the ensemble management menu -->
+	<UL ID = "ensembleManagementMenuDisplay" CLASS = "menuBarContextMenu" HIDDEN>
+		<LI>
+			<A HREF = "{{ add_new_ensemble_group_url }}" CLASS = "contextMenuLink">&nbsp;&nbsp;Add a new ensemble group&nbsp;&nbsp;</A>
+		</LI>
+		<LI>
+			<A HREF = "{{ manage_ensemble_groups_url }}" CLASS = "contextMenuLink">&nbsp;&nbsp;Manage your ensemble groups&nbsp;&nbsp;</A>
+		</LI>
+	</UL>
+	
+	<!-- List of options for the teacher management menu -->
+	<UL ID = "teacherManagementMenuDisplay" CLASS = "menuBarContextMenu" HIDDEN>
+		<LI>
+			<A HREF = "{{ add_new_teacher_url }}" CLASS = "contextMenuLink">&nbsp;&nbsp;Add a new teacher&nbsp;&nbsp;</A>
+		</LI>
+		<LI>
+			<A HREF = "{{ view_edit_teachers_url }}" CLASS = "contextMenuLink">&nbsp;&nbsp;View/Edit your teachers&nbsp;&nbsp;</A>
+		</LI>
+	</UL>
+	
+	<!-- List of options for the classroom management menu -->
+	<UL ID = "classroomManagementMenuDisplay" CLASS = "menuBarContextMenu" HIDDEN>
+		<LI>
+			<A HREF = "{{ add_new_classroom_url }}" CLASS = "contextMenuLink">&nbsp;&nbsp;Add a new classroom to a location&nbsp;&nbsp;</A>
+		</LI>
+		<LI>
+			<A HREF = "{{ view_edit_classrooms_url }}" CLASS = "contextMenuLink">&nbsp;&nbsp;View/Edit your classrooms&nbsp;&nbsp;</A>
+		</LI>
+	</UL>
+	
+	<!-- List of options for the timetable management menu -->
+	<UL ID = "timetableManagementMenuDisplay" CLASS = "menuBarContextMenu" HIDDEN>
+		{% if account_type == "Administrator": %}
+			<LI>
+				<A HREF = "{{ manage_a_student_timetable_url }}" CLASS = "contextMenuLink">&nbsp;&nbsp;Manage a student timetable&nbsp;&nbsp;</A>
+			</LI>
+			<LI>
+				<A HREF = "{{ view_a_classroom_timetable_url }}" CLASS = "contextMenuLink">&nbsp;&nbsp;View a classroom timetable&nbsp;&nbsp;</A>
+			</LI>
+			<LI>
+				<A HREF = "{{ view_a_teacher_timetable_url }}" CLASS = "contextMenuLink">&nbsp;&nbsp;View a teacher timetable&nbsp;&nbsp;</A>
+			</LI>
+			<LI>
+				<A HREF = "{{ view_a_student_timetable_url }}" CLASS = "contextMenuLink">&nbsp;&nbsp;View a student timetable&nbsp;&nbsp;</A>
+			</LI>			
+		{% endif %}
+		{% if account_type == "Teacher" or account_type == "Student": %}
+			<LI>
+				<!--<A HREF = "{{ view_my_timetable_url }}" CLASS = "contextMenuLink">&nbsp;&nbsp;View my timetable&nbsp;&nbsp;</A>-->
+				<A ONCLICK = "loadMyTimetable();" CLASS = "contextMenuLink">&nbsp;&nbsp;View my timetable&nbsp;&nbsp;</A>
+			</LI>
+		{% endif %}
+	</UL>
+
+	<!-- Loading message for if the user wishes to view their timetable -->
+<DIV ID = "loadingYourTimetable" CLASS = "confirmationWindow" HIDDEN>
+	<BR>Loading Your Timetable
+	<BR>
+	<BR>Please Wait
+</DIV>
+{% endblock %}

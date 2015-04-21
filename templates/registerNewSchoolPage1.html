@@ -1,0 +1,93 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				24th March 2015
+	Purpose:			Display the first page of the "Register New School" process to the user. New schools can be registered here.
+-->
+
+{% extends "masterHeadingMenuFooterPage.html" %}
+
+{% block common_jquery %}
+<SCRIPT>
+// Validate the school entry details for this page
+function validateRegistrationDetails() {
+	$.ajax({ url: "/validateFirstRegistrationPage", data: $('FORM').serialize(), type: 'POST', async: false, success: function(result) {
+						if(result == "OK") {
+							window.location.replace("/registerNewSchoolPage2")
+						} else {
+							alert(result);
+						}
+					}});
+}
+</SCRIPT>
+{% endblock %}
+
+{% block main_body_content %}
+	<DIV ALIGN = "CENTER">
+		<H2>Register New School - Page 1 of 2</H2>
+		<P>
+		First of all, may we say how pleased we are that you are choosing to register your music school with our application.<BR>
+		In order to process your schools registration, please begin by entering your schools name and email address in the<BR>
+		text fields below. Please note that email addresses must be completely unique: re-using a previously registered<BR>
+		email address is not permitted. You must also choose a password for this account.
+		</P>
+		
+		<BR>
+		<FORM>
+			<TABLE CLASS = "detailsEntry">
+				<TR>
+					<TD CLASS = "detailsHeading">
+						School Name:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "schoolName" NAME = "schoolName" CLASS = "schoolDetails"
+							TITLE = "Please enter a name for your school. A schools name can be a maximum of 50 characters in length."></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Email Address:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "emailAddress" NAME = "emailAddress" CLASS = "schoolDetails"
+							TITLE = "Enter your schools email address in the format name@provider.domain"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Confirm Email Address:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "confirmEmailAddress" NAME = "confirmEmailAddress" CLASS = "schoolDetails"
+							TITLE = "Please confirm your email address."></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Password:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "PASSWORD" ID = "password" NAME = "password" CLASS = "schoolDetails"
+							TITLE = "Enter the password you wish to link to this account. A password must contain at least one uppercase character, one lowercase character and a number between 0 and 9."></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Confirm Password:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "PASSWORD" ID = "confirmPassword" NAME = "confirmPassword" CLASS = "schoolDetails"
+							TITLE = "Please confirm your new account password."></INPUT>
+					</TD>
+				</TR>
+			</TABLE>
+			<BR>
+			<INPUT TYPE = "BUTTON" ONCLICK = "validateRegistrationDetails()" VALUE = "Submit and Continue Registration"></INPUT>
+		</FORM>
+		<BR>
+		<P>
+		If you wish to return to the login screen without registering for a new account, then please use this <A HREF = "{{ login_screen_url }}">
+			<B><U>Back to Login Page</U></B></A> link.
+		</P>
+	</DIV>
+{% endblock %}

@@ -1,0 +1,36 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				24th March 2015
+	Purpose:			Display an error message to the user informing them of a problem during the completion of the registration process.
+-->
+
+{% extends "masterHeadingMenuFooterPage.html" %}
+
+{% block common_javascript %}
+<SCRIPT>
+function returnToLoginPage() {
+	window.location.replace("/")
+}
+</SCRIPT>
+{% endblock %}
+
+{% block main_body_content %}
+	<DIV ALIGN = "CENTER">
+		<H2>Error During Registration</H2>
+		<P>
+		We are sorry but it appears that there was a problem with completing your registration.<BR><BR>
+		<U><I>This error may have been caused by any one of the following problems:</I></U><BR>
+		1: Negotiating to this page manually without first completing the registration process (by typing this URL into your browser).<BR>
+		2: Refreshing your browser on the registration completion page after the successful completion of a previous registration.<BR>
+		3: An unavoidable error/failure occurred such as an internal error within our application during the registration process.<BR><BR>
+		Please note whether any of these problems might have affected your registration process and return to the login page.<BR>
+		You will be able to retry registering again.<BR><BR>
+		If this error persists, please contact support and report the issue.
+		</P>
+		<BR>
+		<INPUT TYPE = "BUTTON" ONCLICK = "returnToLoginPage()" VALUE = "Return to Login"></INPUT>
+		<BR>
+		<BR>
+	</DIV>
+{% endblock %}

@@ -1,0 +1,92 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				24th March 2015
+	Purpose:			Display the second page of the "Register New School" process to the user. New schools can be registered here.
+-->
+
+{% extends "masterHeadingMenuFooterPage.html" %}
+
+{% block common_jquery %}
+<SCRIPT>
+// Validate the school entry details for this page
+function validateRegistrationDetails() {
+	$.ajax({ url: "/validateSecondRegistrationPage", data: $('FORM').serialize(), type: 'POST', async: false, success: function(result) {
+						if(result == "OK") {
+							window.location.replace("/registrationComplete")
+						} else {
+							alert(result);
+						}
+					}});
+}
+</SCRIPT>
+{% endblock %}
+
+{% block main_body_content %}
+	<DIV ALIGN = "CENTER">
+		<H2>Register New School - Page 2 of 2</H2>
+		<P>
+		Finally, we need you to provide us with your schools main address and phone number. Once you have entered this<BR>
+		information into the text fields, below, submit this information to us in order to complete your registration.<BR>
+		Thank you for taking the time to register your school with us and we hope you enjoy using our application.
+		</P>
+		
+		<BR>
+		<FORM>
+			<TABLE CLASS = "detailsEntry">
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Street Name 1:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "streetName1" NAME = "streetName1"
+							TITLE = "Enter the street name for your school." CLASS = "schoolDetails"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Street Name 2:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "streetName2" NAME = "streetName2"
+							TITLE = "Enter the street name for your school." CLASS = "schoolDetails"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Town or City:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "townOrCity" NAME = "townOrCity"
+							TITLE = "Enter the town or city in which your school is based." CLASS = "schoolDetails"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						County:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "county" NAME = "county"
+							TITLE = "Enter the county in which your school is based." CLASS = "schoolDetails"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Phone Number:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "phoneNumber" NAME = "phoneNumber"
+							TITLE = "Enter your schools phone number." CLASS = "schoolDetails"></INPUT>
+					</TD>
+				</TR>
+			</TABLE>
+			<BR>
+			<INPUT TYPE = "BUTTON" ONCLICK = "validateRegistrationDetails()" VALUE = "Finish Registration"></INPUT>
+		</FORM>
+		<BR>
+		<P>
+		If you wish to return to the login screen without completing registration, then please use this <A HREF = "{{ login_screen_url }}">
+			<B><U>Back to Login Page</U></B></A> link.
+		</P>
+	</DIV>
+{% endblock %}

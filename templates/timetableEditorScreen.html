@@ -1,0 +1,1148 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				12th March 2015
+	Purpose:			This page allows the user to edit a students timetable (auto-saved as they make changes)
+-->
+
+{% extends "commonTimetableManagement.html" %}
+
+{% block common_jquery %}
+<SCRIPT>
+$(document).ready(function(){
+	// Set up the dropZone areas for dragging lessons correctly
+	$(".dropZone").droppable({ tolerance: "fit",
+								drop: function(event, ui) {
+									colliding = checkForExistingLessonCollisions($(ui.draggable));
+									if(colliding == true) {
+										$(ui.draggable).draggable({ revert: true });
+									} else {
+										$("#updatingMessage").finish().show();
+										saveTimetableState();
+										$(ui.draggable).draggable({ revert: "invalid" });
+									}
+								},
+								out: function(event, ui) {
+									$(ui.draggable).draggable({ revert: true });
+								}
+							});
+								
+	// Add the right click menu that is needed to the timetable drop zone slots
+	$(".dropZone").bind("contextmenu", function(event) {
+		event.preventDefault();
+		lastXPosition = event.pageX;
+		lastYPosition = event.pageY;
+		var currentXPos = lastXPosition;
+		var currentYPos = lastYPosition;
+		
+		if((event.clientX + 160) >= $(window).width() - 50) {
+			currentXPos = currentXPos - 190;
+		}	
+		if((currentYPos + 40) >= $(window).height() - 50) {
+			currentYPos = currentYPos - 50;
+		}
+		$("#emptyDropZoneMenu").finish().show(100).		
+		css({
+				top: currentYPos + "px",
+				left: currentXPos + "px"
+			});
+	});
+	
+	// Add the "unavailable" message display if the user clicks any of the unavailable areas of the timetable
+	$(".editorUnavailableGrid").bind("contextmenu", function(event) {
+		event.preventDefault();
+		var currentXPos = event.pageX;
+		var currentYPos = event.pageY;
+		
+		if((event.clientX + 220) >= $(window).width() - 50) {
+			currentXPos = currentXPos - 270;
+		}
+		if((currentYPos + 50) >= $(window).height() - 50) {
+			currentYPos = currentYPos - 60;
+		}
+		
+		$("#unavailableMenu").finish().show(100).		
+		css({
+				top: currentYPos + "px",
+				left: currentXPos + "px"
+			});
+	});
+	
+	// Hide any of the right click menus if the user clicks away from it
+	$(document).bind("mousedown", function (event) {
+		if (!$(event.target).parents("#emptyDropZoneMenu").length > 0) {
+			$("#emptyDropZoneMenu").finish().hide(100);
+		}
+		if (!$(event.target).parents("#unavailableMenu").length > 0) {
+			$("#unavailableMenu").finish().hide(100);
+		}
+		if (!$(event.target).parents("#scheduledLessonMenu").length > 0) {
+			$("#scheduledLessonMenu").finish().hide(100);
+		}
+	});
+	
+	// Set the list of lesson names for the autocomplete feature of the search box
+	$("#lessonEntry").autocomplete({
+				source: availableLessons,
+				select: function(event, ui) {
+					event.preventDefault();
+					$(this).val(ui.item.label);
+				}
+	}).autocomplete("widget").addClass("searchList");
+	
+	// Set the list of teacher names for the autocomplete feature of the search box
+	$("#teacherEntry").autocomplete({
+				source: availableTeachers,
+				select: function(event, ui) {
+					event.preventDefault();
+					$(this).val(ui.item.label);
+				}
+	}).autocomplete("widget").addClass("searchList");
+	
+	// Set the list of classroom names for the autocomplete feature of the search box
+	$("#classroomEntry").autocomplete({
+				source: availableClassrooms,
+				select: function(event, ui) {
+					event.preventDefault();
+					$(this).val(ui.item.label);
+				}
+	}).autocomplete("widget").addClass("searchList");
+	
+	// Set the list of teacher names for the autocomplete feature of the edit search box
+	$("#editedTeacherEntry").autocomplete({
+				source: availableTeachers,
+				select: function(event, ui) {
+					event.preventDefault();
+					$(this).val(ui.item.label);
+				}
+	}).autocomplete("widget").addClass("searchList");
+	
+	// Set the list of classroom names for the autocomplete feature of the edit search box
+	$("#editedClassroomEntry").autocomplete({
+				source: availableClassrooms,
+				select: function(event, ui) {
+					event.preventDefault();
+					$(this).val(ui.item.label);
+				}
+	}).autocomplete("widget").addClass("searchList");
+});
+
+// Process the user clicking on the link to add a lesson to the timetable
+function processUserActionAddLesson() {
+	document.getElementById("lessonEntry").value = "";
+	document.getElementById("teacherEntry").value = "";
+	document.getElementById("classroomEntry").value = "";
+	document.getElementById("lessonEntryValue").value = "";
+	document.getElementById("teacherEntryValue").value = "";
+	document.getElementById("classroomEntryValue").value = "";
+	document.getElementById("timeEntry").value = "60";
+	$("#scheduleALesson").css("height", "90%");
+	$("#emptyDropZoneMenu").finish().hide(100);
+	$("#scheduleALesson").finish().show(100);
+	$("#lessonEntry").focus();
+}
+
+// Process the user clicking on the link to view or edit a lessons details
+function processUserActionViewEditLesson() {
+	var currentLessonId = $("#" + idOfLastElementClicked).attr("DATA-LESSONID");
+	var currentTeacherId = $("#" + idOfLastElementClicked).attr("DATA-TEACHERID");
+	var currentLocationId = $("#" + idOfLastElementClicked).attr("DATA-LOCATIONID");
+	var currentClassroomId = $("#" + idOfLastElementClicked).attr("DATA-CLASSROOMID");
+	var currentLessonLength = $("#" + idOfLastElementClicked).attr("DATA-LESSONLENGTH");
+	
+	// Determine the lesson value to populate the editor input field
+	var index = 0;
+	var foundLesson = false;
+	while(index < availableLessons.length && foundLesson == false) {
+		var lessonValue = availableLessons[index].value;
+		var lessonDetails = lessonValue.split(",");
+		
+		if(lessonDetails[0] == currentLessonId) {
+			document.getElementById("editedLessonEntry").value = availableLessons[index].label;
+			foundLesson = true;
+		}
+		index ++;
+	}
+	
+	// Determine the teacher value to populate the editor input field
+	var foundTeacher = false;
+	index = 0;
+	while(index < availableTeachers.length && foundTeacher == false) {
+		var teacherValue = availableTeachers[index].value;
+		var teacherDetails = teacherValue.split(",");
+		
+		if(teacherDetails[0] == currentTeacherId) {
+			document.getElementById("editedTeacherEntry").value = availableTeachers[index].label;
+			foundTeacher = true;
+		}
+		index ++;
+	}
+	
+	// Determine the classroom value to populate the editor input field
+	var foundClassroom = false;
+	index = 0;
+	while(index < availableClassrooms.length && foundClassroom == false) {
+		var classroomValue = availableClassrooms[index].value;
+		var classroomDetails = classroomValue.split(",");
+		
+		if(classroomDetails[0] == currentLocationId && classroomDetails[2] == currentClassroomId) {
+			document.getElementById("editedClassroomEntry").value = availableClassrooms[index].label;
+			foundClassroom = true;
+		}
+		index ++;
+	}
+	
+	document.getElementById("editedTimeEntry").value = (currentLessonLength * 2);
+	document.getElementById("oldTimeEntry").value = (currentLessonLength * 2);
+	$("#viewEditALesson").css("height", "90%");
+	$("#scheduledLessonMenu").finish().hide(100);
+	$("#viewEditALesson").finish().show(100);
+}
+
+// Process the user wishing to remove a lesson from the timetable
+function processUserActionRemoveLesson() {
+	$("#scheduledLessonMenu").finish().hide(100);
+	$("#removeLessonConfirmation").finish().show(100);
+}
+
+// Remove the lesson after confirmation
+function removeLessonConfirmed() {
+	$("#removeLessonConfirmation").finish().hide(100);
+	$("#" + idOfLastElementClicked).remove();
+	saveTimetableState();
+}
+
+// Schedule the lesson on the timetable
+function scheduleLesson() {
+	$.ajax({ url: "/scheduleALesson", data: $('#addNewLessonForm').serialize(), type: 'POST', async: true, success: function(result) {
+						if(result == "OK") {
+							$("#scheduleALesson").finish().hide();
+							$("#updatingMessage").finish().show();
+							
+							// Determine the X and Y position that the lesson should be drawn at
+							var currentXPos = lessonStartXPos;
+							var currentYPos = lessonStartYPos;
+							var numberOfYIncrements = 0;
+							
+							while((currentXPos + xGridAlignment) <= lastXPosition) {
+								currentXPos += xGridAlignment;
+							}
+							while((currentYPos + yGridAlignment) < lastYPosition) {
+								currentYPos += yGridAlignment;
+								numberOfYIncrements ++;
+							}
+							
+							// Check if drawing the new lesson will exceed the any boundaries or collide with any lessons
+							var lessonLength = parseInt(document.getElementById("timeEntry").value);
+							var lastXPos = currentXPos + lessonLength;
+							var rightmostBoundaryX = timetableRightmostBoundaries[numberOfYIncrements].xValue;
+							var leftmostBoundaryX = timetableLeftmostBoundaries[numberOfYIncrements].xValue;
+							var foundSpace = false;	
+							
+							if(lastXPos > rightmostBoundaryX) {
+								currentXPos = rightmostBoundaryX - lessonLength;
+								lastXPos = currentXPos + lessonLength;
+							}
+							
+							while(currentXPos >= leftmostBoundaryX && foundSpace == false) {
+								var allLessonElements = document.getElementsByClassName("draggableLesson");
+								var collision = false;
+								var elementIndex = 0;
+								while(elementIndex < allLessonElements.length && collision == false) {
+									var elementYPos = $(allLessonElements[elementIndex]).offset().top;
+									
+									if(elementYPos == currentYPos) {
+										var elementXPos = $(allLessonElements[elementIndex]).offset().left;
+										var elementLastXPos = elementXPos + $(allLessonElements[elementIndex]).outerWidth(true);
+										
+										if(elementXPos < currentXPos) {
+											if(elementLastXPos > currentXPos) {
+												collision = true;		// Lesson to the left of the current lesson to be drawn and colliding with it
+											}
+										} else if(elementXPos > currentXPos) {
+											if(lastXPos > elementXPos) {
+												collision = true;		// Lesson to the right of the current lesson to be drawn and colliding with it
+											}
+										} else {
+											collision = true;
+										}
+									}
+									elementIndex ++;
+								}
+								if(collision == false) {
+									foundSpace = true;
+								}
+								if(foundSpace == false) {
+									currentXPos -= xGridAlignment;
+									lastXPos = currentXPos + lessonLength;
+								}
+							}
+							
+							if(foundSpace == false) {
+								// Could not find space for this lesson in the current day - alert the user
+								$("#updatingMessage").finish().hide();
+								$("#cannotSchedule").finish().show();
+								setTimeout(function () {
+									$("#cannotSchedule").finish().hide();
+								}, 2000);
+							} else {
+								// Draw the lesson
+								var lessonValue = document.getElementById("lessonEntryValue").value;
+								var teacherValue = document.getElementById("teacherEntryValue").value;
+								var classroomValue = document.getElementById("classroomEntryValue").value;
+								
+								var lessonDetails = lessonValue.split(",");
+								var teacherDetails = teacherValue.split(",");
+								var classroomDetails = classroomValue.split(",");
+								numberOfTimetabledLessons += 1;
+								
+								var newLesson = document.createElement("P");
+								newLesson.setAttribute("ID", "lesson" + numberOfTimetabledLessons);
+								newLesson.setAttribute("NAME", "lesson" + numberOfTimetabledLessons);
+								newLesson.setAttribute("CLASS", "draggableLesson");
+								newLesson.setAttribute("DATA-LESSONID", lessonDetails[0]);
+								newLesson.setAttribute("DATA-TEACHERID", teacherDetails[0]);
+								newLesson.setAttribute("DATA-LOCATIONID", classroomDetails[0]);
+								newLesson.setAttribute("DATA-CLASSROOMID", classroomDetails[2]);
+								newLesson.setAttribute("DATA-LESSONLENGTH", (lessonLength / 2));
+								newLesson.style.width = "" + lessonLength + "px";
+								newLesson.style.top = "" + currentYPos + "px";
+								newLesson.style.left = "" + currentXPos + "px";
+								newLesson.style.backgroundColor = "" + lessonDetails[3];
+								
+								var lessonInnerHTML = "" + lessonDetails[2] + "<BR>";
+								lessonInnerHTML += "T:" + teacherDetails[0] + "<BR>";
+								lessonInnerHTML += "L:" + classroomDetails[0] + "<BR>";
+								lessonInnerHTML += "" + classroomDetails[3];
+								newLesson.innerHTML = lessonInnerHTML;
+								
+								var mainHTMLBody = document.getElementById("body");
+								mainHTMLBody.appendChild(newLesson);
+								initialiseDraggable();
+								saveTimetableState();
+							}
+						} else {
+							$("#updatingMessage").finish().hide();
+							alert(result);
+							$("#cannotUpdateMessage").finish().show();
+							setTimeout(function () {
+								$("#cannotUpdateMessage").finish().hide();
+							}, 2000);
+						}
+					}});
+}
+
+// Update a lesson on the timetable
+function updateLesson() {
+	$.ajax({ url: "/updateALesson", data: $('#viewEditThisLessonForm').serialize(), type: 'POST', async: true, success: function(result) {
+						if(result == "OK") {
+							$("#viewEditALesson").finish().hide();
+							$("#updatingMessage").finish().show();
+							
+							// Update the scheduled lesson
+							var lessonValue = document.getElementById("editedLessonValue").value;
+							var teacherValue = document.getElementById("editedTeacherValue").value;
+							var classroomValue = document.getElementById("editedClassroomValue").value;
+							var lessonLength = parseInt(document.getElementById("editedTimeEntry").value);
+							var oldLessonLength = parseInt(document.getElementById("oldTimeEntry").value);
+							var lastElementClicked = document.getElementById(idOfLastElementClicked);
+							var currentXPos = $(lastElementClicked).offset().left;
+							var currentYPos = $(lastElementClicked).offset().top;
+							var foundSpace = true;
+							
+							// If time has increased - check if there is space on the timetable to place the larger lesson
+							if(lessonLength > oldLessonLength) {
+								var lastXPos = currentXPos + lessonLength;
+								var numberOfYIncrements = (($(lastElementClicked).offset().top - lessonStartYPos) / yGridAlignment);
+								var rightmostBoundaryX = timetableRightmostBoundaries[numberOfYIncrements].xValue;
+								var leftmostBoundaryX = timetableLeftmostBoundaries[numberOfYIncrements].xValue;
+								foundSpace = false;	
+								
+								if(lastXPos > rightmostBoundaryX) {
+									currentXPos = rightmostBoundaryX - lessonLength;
+									lastXPos = currentXPos + lessonLength;
+								}
+							
+								while(currentXPos >= leftmostBoundaryX && foundSpace == false) {
+									var allLessonElements = document.getElementsByClassName("draggableLesson");
+									var collision = false;
+									var elementIndex = 0;
+									while(elementIndex < allLessonElements.length && collision == false) {
+										var elementYPos = $(allLessonElements[elementIndex]).offset().top;
+									
+										if(elementYPos == currentYPos && idOfLastElementClicked != $(allLessonElements[elementIndex]).attr("ID")) {
+											var elementXPos = $(allLessonElements[elementIndex]).offset().left;
+											var elementLastXPos = elementXPos + $(allLessonElements[elementIndex]).outerWidth(true);
+										
+											if(elementXPos < currentXPos) {
+												if(elementLastXPos > currentXPos) {
+													collision = true;		// Lesson to the left of the current lesson to be drawn and colliding with it
+												}
+											} else if(elementXPos > currentXPos) {
+												if(lastXPos > elementXPos) {
+													collision = true;		// Lesson to the right of the current lesson to be drawn and colliding with it
+												}
+											} else {
+												collision = true;
+											}
+										}
+										elementIndex ++;
+									}
+									if(collision == false) {
+										foundSpace = true;
+									}
+									if(foundSpace == false) {
+										currentXPos -= xGridAlignment;
+										lastXPos = currentXPos + lessonLength;
+									}
+								}
+							}
+							if(foundSpace == false) {
+								// Could not find space for this lesson in the current day - alert the user
+								$("#updatingMessage").finish().hide();
+								$("#cannotUpdateLesson").finish().show();
+								setTimeout(function () {
+									$("#cannotUpdateLesson").finish().hide();
+								}, 2000);
+							} else {
+								// Space found - update the lesson
+								var lessonDetails = lessonValue.split(",");
+								var teacherDetails = teacherValue.split(",");
+								var classroomDetails = classroomValue.split(",");
+								
+								lastElementClicked.setAttribute("DATA-TEACHERID", teacherDetails[0]);
+								lastElementClicked.setAttribute("DATA-LOCATIONID", classroomDetails[0]);
+								lastElementClicked.setAttribute("DATA-CLASSROOMID", classroomDetails[2]);
+								lastElementClicked.setAttribute("DATA-LESSONLENGTH", (lessonLength / 2));
+								lastElementClicked.style.left = "" + currentXPos + "px";
+								lastElementClicked.style.width = "" + lessonLength + "px";
+									
+								var lessonInnerHTML = "" + lessonDetails[2] + "<BR>";
+								lessonInnerHTML += "T:" + teacherDetails[0] + "<BR>";
+								lessonInnerHTML += "L:" + classroomDetails[0] + "<BR>";
+								lessonInnerHTML += "" + classroomDetails[3];
+								lastElementClicked.innerHTML = lessonInnerHTML;
+								saveTimetableState();
+							}
+						} else {
+							$("#updatingMessage").finish().hide();
+							alert(result);
+							$("#cannotUpdateMessage").finish().show();
+							setTimeout(function () {
+								$("#cannotUpdateMessage").finish().hide();
+							}, 2000);
+						}
+					}});
+}
+
+// Initialise a lesson element as draggable (for newly created items after page load)
+function initialiseDraggable() {
+	$(".draggableLesson").draggable({ grid: [xGridAlignment, yGridAlignment], scroll: false, revert: "invalid", stack: ".draggableLesson",
+									});
+	
+	// Add the right click menu to the scheduled lessons
+	$(".draggableLesson").bind("contextmenu", function(event) {
+		event.preventDefault();
+		var currentXPos = event.pageX;
+		var currentYPos = event.pageY;
+		idOfLastElementClicked = $(this).attr("ID");
+		
+		if((event.clientX + 190) >= $(window).width()) {
+			currentXPos = currentXPos - 220;
+		}
+		if((currentYPos + 70) >= $(window).height()) {
+			currentYPos = currentYPos - 70;
+		}
+		$("#scheduledLessonMenu").finish().show(100).
+		css({
+				top: currentYPos + "px",
+				left: currentXPos + "px"
+			});
+	});
+}
+</SCRIPT>
+{% endblock %}
+
+{% block additional_javascript %}
+<SCRIPT>
+// Global Attributes
+var maxScreenWidth = 0;						// The max width of the screen
+var lastXPosition = 0;						// The last X Position clicked by the user
+var lastYPosition = 0;						// The last Y Position clicked by the user
+var availableLessons = [];					// Array of available lessons for autocomplete
+var availableTeachers = [];					// Array of available teachers for autocomplete
+var availableClassrooms = [];				// Array of available classrooms for autocomplete
+var idOfLastElementClicked = "";			// ID of last element clicked by the user
+
+// Set the required screen width for the timetable display (removes excess scrolling problems)
+function setMaxScreenWidth() {
+	var startHour = parseInt("{{ start_hour }}");
+	var endHour = parseInt("{{ end_hour }}");
+	var requiredWidth = (((endHour - startHour) + 1) * mainElementWidth) + 10;
+	if(requiredWidth <= screen.width) {
+		$("#mainDivElement").width(screen.width * 0.99);
+	} else {
+		$("#mainDivElement").width(requiredWidth);
+	}
+	maxScreenWidth = $("#mainDivElement").width();
+}
+
+// Scheduled the selected lesson on the timetable
+function updateValuesAndScheduleLesson() {
+	var index = 0;
+	
+	// Update the lesson entry value hidden input field
+	var lessonEntry = document.getElementById("lessonEntry").value;
+	var foundMatchingLesson = false;
+	index = 0;
+	while(index < availableLessons.length && foundMatchingLesson == false) {
+		if(availableLessons[index].label == lessonEntry) {
+			$("#lessonEntryValue").val(availableLessons[index].value);
+			foundMatchingLesson = true;
+		}
+		index ++;
+	}
+	
+	// Update the teacher entry value hidden input field
+	var teacherEntry = document.getElementById("teacherEntry").value;
+	var foundMatchingTeacher = false;
+	index = 0;
+	while(index < availableTeachers.length && foundMatchingTeacher == false) {
+		if(availableTeachers[index].label == teacherEntry) {
+			$("#teacherEntryValue").val(availableTeachers[index].value);
+			foundMatchingTeacher = true;
+		}
+		index ++;
+	}
+	
+	// Update the classroom entry value hidden input field
+	var classroomEntry = document.getElementById("classroomEntry").value;
+	var foundMatchingClassroom = false;
+	index = 0;
+	while(index < availableClassrooms.length && foundMatchingClassroom == false) {
+		if(availableClassrooms[index].label == classroomEntry) {
+			$("#classroomEntryValue").val(availableClassrooms[index].value);
+			foundMatchingClassroom = true;
+		}
+		index ++;
+	}
+	scheduleLesson();
+}
+
+// Update the selected lesson on the timetable
+function updateValuesAndUpdateLesson() {
+	var index = 0;
+	
+	// Update the lesson entry value hidden input field
+	var lessonEntry = document.getElementById("editedLessonEntry").value;
+	var foundMatchingLesson = false;
+	index = 0;
+	while(index < availableLessons.length && foundMatchingLesson == false) {
+		if(availableLessons[index].label == lessonEntry) {
+			$("#editedLessonValue").val(availableLessons[index].value);
+			foundMatchingLesson = true;
+		}
+		index ++;
+	}
+	
+	// Update the teacher entry value hidden input field
+	var teacherEntry = document.getElementById("editedTeacherEntry").value;
+	var foundMatchingTeacher = false;
+	index = 0;
+	while(index < availableTeachers.length && foundMatchingTeacher == false) {
+		if(availableTeachers[index].label == teacherEntry) {
+			$("#editedTeacherValue").val(availableTeachers[index].value);
+			foundMatchingTeacher = true;
+		}
+		index ++;
+	}
+	
+	// Update the classroom entry value hidden input field
+	var classroomEntry = document.getElementById("editedClassroomEntry").value;
+	var foundMatchingClassroom = false;
+	index = 0;
+	while(index < availableClassrooms.length && foundMatchingClassroom == false) {
+		if(availableClassrooms[index].label == classroomEntry) {
+			$("#editedClassroomValue").val(availableClassrooms[index].value);
+			foundMatchingClassroom = true;
+		}
+		index ++;
+	}
+	updateLesson();
+}
+
+// Check if the moved lesson has collided with any other existing lessons on the timetable
+function checkForExistingLessonCollisions(droppedElement) {
+	var allLessonElements = document.getElementsByClassName("draggableLesson");
+	var colliding = false;
+	var index = 0;
+	
+	while(index < allLessonElements.length && colliding == false) {
+		if(allLessonElements[index].getAttribute("ID") != $(droppedElement).attr("ID")) {
+			if($(allLessonElements[index]).position().top == $(droppedElement).position().top) {
+				if($(allLessonElements[index]).position().left < $(droppedElement).position().left) {
+					// Found element is to the left of dropped element
+					var leftmostXPos = $(allLessonElements[index]).position().left;
+					var leftmostWidth = $(allLessonElements[index]).width() + 2;
+					if((leftmostXPos + leftmostWidth) > $(droppedElement).position().left) {
+						colliding = true;
+					}
+				} else if($(allLessonElements[index]).position().left > $(droppedElement).position().left) {
+					// Found element is to the right of dropped element
+					var droppedXPos = $(droppedElement).position().left;
+					var droppedWidth = $(droppedElement).width() + 2;
+					if((droppedXPos + droppedWidth) > $(allLessonElements[index]).position().left) {
+						colliding = true;
+					}
+				} else {
+					// Elements have the same left-most x position (colliding)
+					colliding = true;
+				}
+			}
+		}
+		index ++;
+	}
+	return colliding;
+}
+
+// Save the current timetable state
+function saveTimetableState() {
+	document.getElementById("timetableData").value = "";
+	
+	var allLessonElements = document.getElementsByClassName("draggableLesson");
+	var index = 0;
+	for(index = 0; index < allLessonElements.length; index ++) {
+		var elementXPos = $(allLessonElements[index]).offset().left;
+		var elementYPos = $(allLessonElements[index]).offset().top;
+		
+		// Get the weekday id associated with this lesson
+		var allTimeHeadings = document.getElementsByClassName("editorDayHeading");
+		var dayHeading = "";
+		var innerIndex = 0;
+		var foundDayHeading = false;
+		while(innerIndex < allTimeHeadings.length && foundDayHeading == false) {
+			var dayHeadingYPos = $(allTimeHeadings[innerIndex]).offset().top;
+			
+			if(elementYPos == dayHeadingYPos) {
+				dayHeading = $(allTimeHeadings[innerIndex]).text();
+				foundDayHeading = true;
+			}
+			innerIndex ++;
+		}
+		
+		var weekdayId = 1;
+		switch(dayHeading) {
+			case "Monday":		weekdayId = 1;
+								break;
+			case "Tuesday":		weekdayId = 2;
+								break;
+			case "Wednesday":	weekdayId = 3;
+								break;
+			case "Thursday":	weekdayId = 4;
+								break;
+			case "Friday":		weekdayId = 5;
+								break;
+			case "Saturday":	weekdayId = 6;
+								break;
+			case "Sunday":		weekdayId = 7;
+								break;
+		}
+		
+		// Get the starting hour and starting minute for the lesson
+		var elementPosXIncrements = elementXPos - lessonStartXPos;
+		var startHour = timetableStartHour + parseInt(elementPosXIncrements / mainElementWidth);
+		var startMin = Math.round((elementPosXIncrements % (xGridAlignment * 12)) / 2);
+		
+		// Get the remaining details for this scheduled lesson
+		var schoolLessonId = allLessonElements[index].getAttribute("DATA-LESSONID");
+		var teacherId = allLessonElements[index].getAttribute("DATA-TEACHERID");
+		var locationId = allLessonElements[index].getAttribute("DATA-LOCATIONID");
+		var classroomId = allLessonElements[index].getAttribute("DATA-CLASSROOMID");
+		var lessonLength = allLessonElements[index].getAttribute("DATA-LESSONLENGTH");
+		var schoolId = document.getElementById("schoolId").value;
+		var studentId = document.getElementById("studentId").value;
+		
+		// Add the data to the timetable form
+		var currentTimetableData = document.getElementById("timetableData").value;
+		var additionalTimetableData = "" + weekdayId + " " + startHour + " " + startMin + " " + lessonLength + " " + schoolId + " " + studentId;
+		additionalTimetableData += " " + schoolLessonId + " " + teacherId + " " + locationId + " " + classroomId + " ";
+		currentTimetableData += additionalTimetableData;
+		
+		document.getElementById("timetableData").value = currentTimetableData;
+	}
+	
+	$.ajax({ url: "/updateTimetable", data: $('#timetableForm').serialize(), type: 'POST', async: true, success: function(result) {
+						if(result == "OK") {
+							$("#updatingMessage").finish().hide();
+							$("#updatedMessage").finish().show();
+							setTimeout(function () {
+								$("#updatedMessage").finish().hide();
+							}, 2000);
+						} else {
+							$("#updatingMessage").finish().hide();
+							alert(result);
+							$("#cannotUpdateMessage").finish().show();
+							setTimeout(function () {
+								$("#cannotUpdateMessage").finish().hide();
+							}, 2000);
+						}
+					}});
+}
+</SCRIPT>
+{% endblock %}
+
+{% block main_body_content %}
+	<SCRIPT>
+		// Set the default timetable attributes before the page loads
+		timetableStartHour = parseInt("{{ start_hour }}");
+		timetableEndHour = parseInt("{{ end_hour }}");
+	</SCRIPT>
+	{% for index in range(0, list_of_lessons.__len__()): %}
+		<SCRIPT>
+			// Add all available lessons into the availableLessons array for autocomplete in the search box
+			availableLessons.push({ value: "{{ list_of_lessons[index].schoollessonId }},{{ list_of_lessons[index].lessonName }},{{ list_of_lessons[index].abbreviatedName }},{{ list_of_lessons[index].colour }}", 
+									label: "{{ list_of_lessons[index].lessonName }}" });
+		</SCRIPT>
+	{% endfor %}
+	{% for index in range(0, list_of_teachers.__len__()): %}
+		<SCRIPT>
+			// Add all available teachers into the availableTeachers array for autocomplete in the search box
+			availableTeachers.push({ value: "{{ list_of_teachers[index].teacherId }},{{ list_of_teachers[index].firstName }},{{ list_of_teachers[index].surname }}",
+										label: "{{ list_of_teachers[index].teacherId }}: {{ list_of_teachers[index].firstName }} {{ list_of_teachers[index].surname }}" });
+		</SCRIPT>
+	{% endfor %}
+	{% for index in range(0, list_of_classrooms.__len__()): %}
+		<SCRIPT>
+			// Add all available classrooms into the availableClassrooms array for autocomplete in the search box
+			availableClassrooms.push({ value: "{{ list_of_classrooms[index].locationId }},{{ list_of_classrooms[index].locationName }},{{ list_of_classrooms[index].classroomId }},{{ list_of_classrooms[index].classroomName }}",
+										label: "{{ list_of_classrooms[index].classroomName }}: {{ list_of_classrooms[index].locationName }}" });
+		</SCRIPT>
+	{% endfor %}
+	
+	<!-- Only draw the timetable if there are open days set by the school(s) -->
+	{% if list_of_weekdays.__len__() > 0: %}
+	
+		<!-- Set up the DIV element for the entire timetable -->
+		<BR>
+		<DIV ID = "mainDivElement" CLASS = "editorDivTable">
+		<SCRIPT>
+			setMaxScreenWidth();
+		</SCRIPT>
+		
+		<!-- Set some hidden fields which will store values required for saving the timetable state -->
+		<INPUT TYPE = "HIDDEN" ID = "schoolId" NAME = "schoolId" VALUE = "{{ current_school_id }}"></INPUT>
+		<INPUT TYPE = "HIDDEN" ID = "studentId" NAME = "studentId" VALUE = "{{ current_student_id }}"></INPUT>
+		
+			<!-- Render the corner block for the timetable -->
+			<P ID = "cornerBlock" NAME = "cornerBlock" CLASS = "editorCornerBlock"></P>
+			<SCRIPT>
+				var cornerBlock = document.getElementById("cornerBlock");
+				cornerBlock.style.left = "0px";
+			</SCRIPT>
+			
+			<!-- Draw the hourly headings across the top of the timetable -->
+			{% for index in range(start_hour, end_hour): %}
+				<P ID = "timeHeading{{index}}" CLASS = "editorTimeHeading"></P>
+				{% if index == start_hour: %}
+					<SCRIPT>
+						var startTimeHeading = document.getElementById("timeHeading{{index}}");
+						startTimeHeading.style.top = "" + $("#cornerBlock").offset().top + "px";
+						startTimeHeading.style.left = "" + ($("#cornerBlock").offset().left + mainElementWidth) + "px";
+					</SCRIPT>
+				{% else: %}
+					<SCRIPT>
+						var previousIndex = parseInt("{{index}}") - 1;
+						var startTimeHeading = document.getElementById("timeHeading{{index}}");
+						startTimeHeading.style.top = "" + $("#timeHeading" + previousIndex).offset().top + "px";
+						startTimeHeading.style.left = "" + ($("#timeHeading" + previousIndex).offset().left + mainElementWidth) + "px";
+					</SCRIPT>
+				{% endif %}
+				<SCRIPT>
+					displayCorrectTimeHeading("timeHeading{{index}}", parseInt("{{index}}"));
+				</SCRIPT>
+			{% endfor %}
+			
+			<!-- Now determine the location of the lessons starting positions -->
+			<SCRIPT>
+				lessonStartXPos = $("#cornerBlock").offset().left + mainElementWidth;
+				lessonStartYPos = $("#cornerBlock").offset().top + mainElementHeight;
+			</SCRIPT>
+			
+			<!-- Draw the day headings and the inner grid of the timetable -->
+			<SCRIPT>
+				var numberOfDaysPrinted = 1;
+			</SCRIPT>
+			{% for index in range(0, list_of_weekdays.__len__()): %}
+				<!-- Draw the day heading -->
+				<P ID = "dayHeading{{list_of_weekdays[index]}}" CLASS = "editorDayHeading"></P>
+				<SCRIPT>
+					var dayHeading = document.getElementById("dayHeading{{list_of_weekdays[index]}}");
+					dayHeading.style.top = "" + ($("#cornerBlock").offset().top + (mainElementHeight * numberOfDaysPrinted)) + "px";
+					dayHeading.style.left = "0px";
+					
+					displayCorrectDayHeading("dayHeading{{list_of_weekdays[index]}}", parseInt("{{list_of_weekdays[index]}}"));
+					numberOfDaysPrinted ++;
+				</SCRIPT>
+				
+				<!-- Draw the inner grid for this day -->
+				<SCRIPT>
+					var startingXPos = $("#dayHeading{{list_of_weekdays[index]}}").offset().left + mainElementWidth;
+					var startingYPos = $("#dayHeading{{list_of_weekdays[index]}}").offset().top;
+				</SCRIPT>
+				{% for gridIndex in range(start_hour, end_hour): %}
+					{% for quarterHourIndex in range(0, 4): %}
+						<P ID = "internalGrid{{index}}{{gridIndex}}{{quarterHourIndex}}" CLASS = "editorInternalGrid"></P>
+						<SCRIPT>
+							var gridElement = document.getElementById("internalGrid{{index}}{{gridIndex}}{{quarterHourIndex}}");
+							gridElement.style.top = "" + startingYPos + "px";
+							gridElement.style.left = "" + startingXPos + "px";
+							
+							startingXPos += (mainElementWidth / 4);
+						</SCRIPT>
+					{% endfor %}
+				{% endfor %}
+				
+				<!-- Draw the unavailable zones onto the timetable (if any) -->
+				{% for unavailableIndex in range(0, open_days_and_times.__len__()): %}
+					
+					<!-- Find the weekday matching to the current weekday being drawn -->
+					{% if open_days_and_times[unavailableIndex].weekdayId == list_of_weekdays[index]: %}
+						
+						<!-- Mark the entire day as "Unavailable" if this school is closed for this day -->
+						{% if open_days_and_times[unavailableIndex].timeId == 0: %}
+							<SCRIPT>
+								displayUnavailableAndDroppableSections("dayHeading{{list_of_weekdays[index]}}", 
+																			parseInt("{{list_of_weekdays[index]}}"),
+																			timetableStartHour, timetableEndHour);
+							</SCRIPT>
+						<!-- Find the opening and closing times for this day and mark any "excess" areas as unavailable -->
+						{% else %}
+							{% for timesIndex in range(0, open_times.__len__()): %}
+							
+								<!-- Draw the unavailable section for any times outside of the times drawn -->
+								{% if open_times[timesIndex].timeId == open_days_and_times[unavailableIndex].timeId: %}
+									<SCRIPT>
+										var thisDayStartHourString = "{{open_times[timesIndex].startTime}}";
+										var thisDayEndHourString = "{{open_times[timesIndex].endTime}}";
+										thisDayStartHourString = thisDayStartHourString.substring(0, thisDayStartHourString.indexOf(":"));
+										thisDayEndHourString = thisDayEndHourString.substring(0, thisDayEndHourString.indexOf(":"));
+										
+										var thisDayStartHour = parseInt(thisDayStartHourString);
+										var thisDayEndHour = parseInt(thisDayEndHourString);
+										
+										displayUnavailableAndDroppableSections("dayHeading{{list_of_weekdays[index]}}", 
+																				parseInt("{{list_of_weekdays[index]}}"),
+																				thisDayStartHour, thisDayEndHour);
+									</SCRIPT>
+								{% endif %}
+							{% endfor %}
+						{% endif %}
+					{% endif %}
+				{% endfor %}
+			{% endfor %}
+			
+		<!-- Draw timetabled lessons if any have been previously stored -->
+		{% if list_of_timetabled_lessons.__len__() > 0: %}
+			{% for eachLesson in list_of_timetabled_lessons: %}
+				<SCRIPT>
+					numberOfTimetabledLessons ++;
+					var schoolLessonId = parseInt("{{eachLesson.schoolLessonId}}");
+					var lessonLength = parseInt("{{eachLesson.lessonLength}}");
+					var abbreviatedName = "";
+					var colour = "";
+					
+					// Find the abbreviated name and colour matched to the schoolLessonId
+					var foundMatchingLesson = false;
+					var index = 0;
+					while(index < availableLessons.length && foundMatchingLesson == false) {
+						availableLessonsValue = availableLessons[index].value;
+						availableLessonDetails = availableLessonsValue.split(",");
+						currentLessonId = parseInt(availableLessonDetails[0]);
+						
+						if(schoolLessonId == currentLessonId) {
+							abbreviatedName = availableLessonDetails[2];
+							colour = availableLessonDetails[3];
+							foundMatchingLesson = true;
+						}
+						index ++;
+					}
+					
+					// Find the teacher and classroom details matched to this lesson
+					var teacherId = parseInt("{{eachLesson.teacherId}}");
+					var locationId = parseInt("{{eachLesson.locationId}}");
+					var classroomId = parseInt("{{eachLesson.classroomId}}");
+					var classroomName = "";
+					
+					var foundMatchingClassroom = false;
+					index = 0;
+					while(index < availableClassrooms.length && foundMatchingClassroom == false) {
+						availableClassroomsValue = availableClassrooms[index].value;
+						availableClassroomDetails = availableClassroomsValue.split(",");
+						currentClassroomId = parseInt(availableClassroomDetails[2]);
+						
+						if(classroomId == currentClassroomId) {
+							classroomName = availableClassroomDetails[3];
+							foundMatchingClassroom = true;
+						}
+						index ++;
+					}
+					
+					// Get the X and Y positions that the lesson needs to be drawn at
+					var weekdayId = parseInt("{{eachLesson.weekdayId}}");
+					var dayHeadingElement = document.getElementById("dayHeading" + weekdayId);
+					var boundingRect = dayHeadingElement.getBoundingClientRect();
+					var yPosition = boundingRect.top;
+					
+					var xPosition = lessonStartXPos;
+					var startHour = parseInt("{{eachLesson.startHour}}");
+					var startMin = parseInt("{{eachLesson.startMin}}");
+					var startingPos = timetableStartHour;
+					
+					xPosition += ((startHour - startingPos) * mainElementWidth);
+					xPosition += ((startMin / 5) * xGridAlignment);
+					
+					// Add this lesson to the timetable
+					var newLesson = document.createElement("P");
+					newLesson.setAttribute("ID", "lesson" + numberOfTimetabledLessons);
+					newLesson.setAttribute("NAME", "lesson" + numberOfTimetabledLessons);
+					newLesson.setAttribute("CLASS", "draggableLesson");
+					newLesson.setAttribute("DATA-LESSONID", schoolLessonId);
+					newLesson.setAttribute("DATA-TEACHERID", teacherId);
+					newLesson.setAttribute("DATA-LOCATIONID", locationId);
+					newLesson.setAttribute("DATA-CLASSROOMID", classroomId);
+					newLesson.setAttribute("DATA-LESSONLENGTH", lessonLength);
+					newLesson.style.width = "" + (lessonLength * 2) + "px";
+					newLesson.style.top = "" + yPosition + "px";
+					newLesson.style.left = "" + xPosition + "px";
+					newLesson.style.backgroundColor = "" + colour;
+					
+					var lessonInnerHTML = "" + abbreviatedName + "<BR>";
+					lessonInnerHTML += "T:" + teacherId + "<BR>";
+					lessonInnerHTML += "L:" + locationId + "<BR>";
+					lessonInnerHTML += "" + classroomName;
+					newLesson.innerHTML = lessonInnerHTML;
+					
+					var mainHTMLBody = document.getElementById("body");
+					mainHTMLBody.appendChild(newLesson);
+					initialiseDraggable();
+				</SCRIPT>
+			{% endfor %}
+		{% endif %}
+		
+		</DIV>
+		<FORM ID = "timetableForm" NAME = "timetableForm">
+			<INPUT TYPE = "HIDDEN" ID = "timetableStartHour" NAME = "timetableStartHour" VALUE = "{{ start_hour }}"></INPUT>
+			<INPUT TYPE = "HIDDEN" ID = "timetableData" NAME = "timetableData"></INPUT>
+		</FORM>
+	{% endif %}
+	
+	<!-- This DIV draws the "Schedule a Lesson" screen to the user -->
+	<DIV ID = "scheduleALesson" NAME = "scheduleALesson" CLASS = "editorWindow" HIDDEN>
+		<H2>Schedule a Lesson</H2>
+		<P>Select the lesson, teacher and classroom that you
+		<BR>wish to schedule on the timetable. You can also set a
+		<BR>length of time for this lesson.
+		<BR><BR>Submit the lesson to add it to the timetable.</P>
+		<BR>
+		<FORM ID = "addNewLessonForm" NAME = "addNewLessonForm">
+			<TABLE CLASS = "detailsEntry">
+				<TR>
+					<TD CLASS = "editorTableDisplay">
+						<P CLASS = "tableHeading">Enter a Lesson to be Scheduled:</P>
+						<INPUT TYPE = "TEXT" ID = "lessonEntry" NAME = "lessonEntry" CLASS = "searchInput"></INPUT>
+						<INPUT TYPE = "HIDDEN" ID = "lessonEntryValue" NAME = "lessonEntryValue"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "editorTableDisplay">
+						<BR>
+						<P CLASS = "tableHeading">Enter a Teacher for this Lesson:</P>
+						<INPUT TYPE = "TEXT" ID = "teacherEntry" NAME = "teacherEntry" CLASS = "searchInput"></INPUT>
+						<INPUT TYPE = "HIDDEN" ID = "teacherEntryValue" NAME = "teacherEntryValue"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "editorTableDisplay">
+						<BR>
+						<P CLASS = "tableHeading">Enter a Classroom for this Lesson:</P>
+						<INPUT TYPE = "TEXT" ID = "classroomEntry" NAME = "classroomEntry" CLASS = "searchInput"></INPUT>
+						<INPUT TYPE = "HIDDEN" ID = "classroomEntryValue" NAME = "classroomEntryValue"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "editorTableDisplay">
+						<BR>
+						<P CLASS = "tableHeading">Please Select a Lesson Length:</P>
+						<SELECT ID = "timeEntry" NAME = "timeEntry">
+							<OPTION VALUE = "60" SELECTED>30 minutes</OPTION>
+							<OPTION VALUE = "70">35 minutes</OPTION>
+							<OPTION VALUE = "80">40 minutes</OPTION>
+							<OPTION VALUE = "90">45 minutes</OPTION>
+							<OPTION VALUE = "100">50 minutes</OPTION>
+							<OPTION VALUE = "110">55 minutes</OPTION>
+							<OPTION VALUE = "120">1 hour</OPTION>
+							<OPTION VALUE = "130">1 hour 5 minutes</OPTION>
+							<OPTION VALUE = "140">1 hour 10 minutes</OPTION>
+							<OPTION VALUE = "150">1 hour 15 minutes</OPTION>
+							<OPTION VALUE = "160">1 hour 20 minutes</OPTION>
+							<OPTION VALUE = "170">1 hour 25 minutes</OPTION>
+							<OPTION VALUE = "180">1 hour 30 minutes</OPTION>
+							<OPTION VALUE = "190">1 hour 35 minutes</OPTION>
+							<OPTION VALUE = "200">1 hour 40 minutes</OPTION>
+							<OPTION VALUE = "210">1 hour 45 minutes</OPTION>
+							<OPTION VALUE = "220">1 hour 50 minutes</OPTION>
+							<OPTION VALUE = "230">1 hour 55 minutes</OPTION>
+							<OPTION VALUE = "240">2 hours</OPTION>
+						</SELECT>
+					</TD>
+				</TR>
+			</TABLE>
+			<BR>
+			<TABLE CLASS = "detailsEntry">
+				<TR>
+					<TD CLASS = "editorTableDisplay">
+						<BR>
+						<INPUT TYPE = "BUTTON" TITLE = "Schedule this lesson." ONCLICK = "updateValuesAndScheduleLesson();" 
+							VALUE = "Schedule this Lesson"></INPUT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+						<INPUT TYPE = "BUTTON" TITLE = "Cancel and exit without scheduling this lesson." 
+						ONCLICK = "$('#scheduleALesson').finish().hide(100);" VALUE = "Cancel All Changes"></INPUT>
+					</TD>
+				</TR>
+			</TABLE>
+		</FORM>
+	</DIV>
+	
+	<!-- This DIV draws the "View/Edit a Lesson" screen to the user -->
+	<DIV ID = "viewEditALesson" NAME = "viewEditALesson" CLASS = "editorWindow" HIDDEN>
+		<H2>View/Edit This Lesson</H2>
+		<P>The current lesson details are displayed below. 
+		<BR>You are only permitted to edit the teacher, the
+		<BR>classroom and the length of time for this lesson.
+		<BR><BR>Submit your changes to update the timetable.</P>
+		<BR>
+		<FORM ID = "viewEditThisLessonForm" NAME = "viewEditThisLessonForm">
+			<TABLE CLASS = "detailsEntry">
+				<TR>
+					<TD CLASS = "editorTableDisplay">
+						<P CLASS = "tableHeading">The Selected Lesson is:</P>
+						<INPUT TYPE = "TEXT" ID = "editedLessonEntry" NAME = "editedLessonEntry" CLASS = "searchInput" DISABLED></INPUT>
+						<INPUT TYPE = "HIDDEN" ID = "editedLessonValue" NAME = "editedLessonValue"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "editorTableDisplay">
+						<BR>
+						<P CLASS = "tableHeading">Edit the Teacher for this Lesson:</P>
+						<INPUT TYPE = "TEXT" ID = "editedTeacherEntry" NAME = "editedTeacherEntry" CLASS = "searchInput"></INPUT>
+						<INPUT TYPE = "HIDDEN" ID = "editedTeacherValue" NAME = "editedTeacherValue"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "editorTableDisplay">
+						<BR>
+						<P CLASS = "tableHeading">Edit the Classroom for this Lesson:</P>
+						<INPUT TYPE = "TEXT" ID = "editedClassroomEntry" NAME = "editedClassroomEntry" CLASS = "searchInput"></INPUT>
+						<INPUT TYPE = "HIDDEN" ID = "editedClassroomValue" NAME = "editedClassroomValue"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "editorTableDisplay">
+						<BR>
+						<P CLASS = "tableHeading">Edit the Lesson Length:</P>
+						<SELECT ID = "editedTimeEntry" NAME = "editedTimeEntry">
+							<OPTION VALUE = "60">30 minutes</OPTION>
+							<OPTION VALUE = "70">35 minutes</OPTION>
+							<OPTION VALUE = "80">40 minutes</OPTION>
+							<OPTION VALUE = "90">45 minutes</OPTION>
+							<OPTION VALUE = "100">50 minutes</OPTION>
+							<OPTION VALUE = "110">55 minutes</OPTION>
+							<OPTION VALUE = "120">1 hour</OPTION>
+							<OPTION VALUE = "130">1 hour 5 minutes</OPTION>
+							<OPTION VALUE = "140">1 hour 10 minutes</OPTION>
+							<OPTION VALUE = "150">1 hour 15 minutes</OPTION>
+							<OPTION VALUE = "160">1 hour 20 minutes</OPTION>
+							<OPTION VALUE = "170">1 hour 25 minutes</OPTION>
+							<OPTION VALUE = "180">1 hour 30 minutes</OPTION>
+							<OPTION VALUE = "190">1 hour 35 minutes</OPTION>
+							<OPTION VALUE = "200">1 hour 40 minutes</OPTION>
+							<OPTION VALUE = "210">1 hour 45 minutes</OPTION>
+							<OPTION VALUE = "220">1 hour 50 minutes</OPTION>
+							<OPTION VALUE = "230">1 hour 55 minutes</OPTION>
+							<OPTION VALUE = "240">2 hours</OPTION>
+						</SELECT>
+						<INPUT TYPE = "HIDDEN" ID = "oldTimeEntry" NAME = "oldTimeEntry"></INPUT>
+					</TD>
+				</TR>
+			</TABLE>
+			<BR>
+			<TABLE CLASS = "detailsEntry">
+				<TR>
+					<TD CLASS = "editorTableDisplay">
+						<BR>
+						<INPUT TYPE = "BUTTON" TITLE = "Update this lessons details." ONCLICK = "updateValuesAndUpdateLesson();" 
+							VALUE = "Submit these Changes"></INPUT>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+						<INPUT TYPE = "BUTTON" TITLE = "Cancel and exit without updating this lesson." 
+						ONCLICK = "$('#viewEditALesson').finish().hide(100);" VALUE = "Cancel All Changes"></INPUT>
+					</TD>
+				</TR>
+			</TABLE>
+		</FORM>
+	</DIV>
+	
+	<!-- List of options for an empty dropzone section -->
+	<UL ID = "emptyDropZoneMenu" CLASS = "editorContextMenu" HIDDEN>
+		<LI><A ONCLICK = "processUserActionAddLesson();" CLASS = "contextMenuLink">&nbsp;&nbsp;Schedule a new lesson&nbsp;&nbsp;</A></LI>
+	</UL>
+	
+	<!-- Display a message to the user if they try to right click on an unusable part of the timetable -->
+	<UL ID = "unavailableMenu" CLASS = "editorContextMenu" HIDDEN>
+		<LI><A CLASS = "inactive">&nbsp;&nbsp;Lessons cannot be scheduled here.&nbsp;&nbsp;</A></LI>
+		<LI><A CLASS = "inactive">&nbsp;&nbsp;The school is closed during this time.&nbsp;&nbsp;</A></LI>
+	</UL>
+	
+	<!-- List of options for a scheduled lesson on the timetable -->
+	<UL ID = "scheduledLessonMenu" CLASS = "editorContextMenu" HIDDEN>
+		<LI><A ONCLICK = "processUserActionViewEditLesson();" CLASS = "contextMenuLink">&nbsp;&nbsp;View/Edit this lesson&nbsp;&nbsp;</A></LI>
+		<LI><A ONCLICK = "" CLASS = "contextMenuLink">&nbsp;&nbsp;Check other available times&nbsp;&nbsp;</A></LI>
+		<LI><A ONCLICK = "processUserActionRemoveLesson();" CLASS = "contextMenuLink">&nbsp;&nbsp;Remove this lesson&nbsp;&nbsp;</A></LI>
+	</UL>
+{% endblock %}
+
+{% block confirmation_windows %}
+<DIV ID = "removeLessonConfirmation" NAME = "removeLessonConfirmation" CLASS = "confirmationWindow" HIDDEN>
+	<BR>Remove Lesson: Are You Sure?
+	<BR>
+	<BR>
+	<INPUT TYPE = "BUTTON" ID = "confirmRemoval" NAME = "confirmRemoval" ONCLICK = "removeLessonConfirmed();"
+		VALUE = "&nbsp;&nbsp;Yes&nbsp;&nbsp;"></INPUT> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	<INPUT TYPE = "BUTTON" ID = "cancelRemoval" NAME = "cancelRemoval" ONCLICK = "$('#removeLessonConfirmation').finish().hide(100);"
+		VALUE = "&nbsp;&nbsp;No&nbsp;&nbsp;"></INPUT>
+</DIV>
+
+<DIV ID = "updatedMessage" NAME = "updatedMessage" CLASS = "editorMessageWindow" HIDDEN>
+	<BR>
+	<BR>Timetable Saved Successfully
+</DIV>
+
+<DIV ID = "updatingMessage" NAME = "updatingMessage" CLASS = "editorMessageWindow" HIDDEN>
+	<BR>
+	<BR>Saving Timetable
+</DIV>
+
+<DIV ID = "notUpdatedMessage" NAME = "notUpdatedMessage" CLASS = "editorMessageWindow" HIDDEN>
+	<BR>
+	<BR>Save Unsuccessful
+</DIV>
+
+<DIV ID = "cannotSchedule" NAME = "cannotSchedule" CLASS = "editorMessageWindow" HIDDEN>
+	<BR><U>Cannot Add Lesson</U>
+	<BR>Not Enough Available
+	<BR>Free Time Around This Time
+</DIV>
+
+<DIV ID = "cannotUpdateLesson" NAME = "cannotUpdateLesson" CLASS = "editorMessageWindow" HIDDEN>
+	<BR><U>Cannot Update Lesson</U>
+	<BR>Not Enough Available Free
+	<BR>Time To Resize Lesson
+</DIV>
+{% endblock %}

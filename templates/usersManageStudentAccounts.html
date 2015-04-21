@@ -1,0 +1,189 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				8th April 2015
+	Purpose:			This page allows the user to edit their student accounts login details - primarily used for
+						setting up student accounts, resetting them and removing them.
+-->
+
+{% extends "commonPersonAccounts.html" %}
+
+{% block additional_jquery %}
+<SCRIPT>
+// Search for the selected student name
+function searchForStudentAccount() {
+	$.ajax({ url: "/searchForStudentAccount", data: $('#searchForm').serialize(), type: 'POST', async: false, success: function(result) {
+						processSearchResult(result);
+					}});
+}
+</SCRIPT>
+{% endblock %}
+
+{% block main_body_content %}
+	{% for index in range(0, list_of_persons.__len__()): %}
+		<SCRIPT>
+			availablePersons.push({ value: "", label: "{{list_of_persons[index].firstName}} {{list_of_persons[index].surname}}" });
+		</SCRIPT>
+	{% endfor %}
+	<DIV ALIGN = "CENTER">
+		<H2>Manage Your Students Accounts</H2>
+		<P>Enter a students name in the search box below and click on the "Search" button
+		<BR>to search for that student. You can then set up a new student account from scratch,
+		<BR>reset their existing account password or remove their account entirely.</P>
+		<BR>
+		<FORM ID = "searchForm" NAME = "searchForm">
+			<INPUT TYPE = "TEXT" ID = "searchEntry" NAME = "searchEntry" CLASS = "searchInput" AUTOFOCUS></INPUT> &nbsp;
+			<INPUT TYPE = "BUTTON" CLASS = "editorButton2" ONCLICK = "searchForStudentAccount();" VALUE = "&nbsp;&nbsp;Search&nbsp;&nbsp;"></INPUT>
+		</FORM>
+		<DIV ID = "searchResults" NAME = "searchResults"></DIV>
+		<SCRIPT>
+			processSearchResult("pageLoader");
+		</SCRIPT>
+	</DIV>
+{% endblock %}
+
+{% block additional_windows %}
+	<!-- This DIV draws the create new account options for any selected teacher -->
+	<DIV ID = "createAccountWindow" NAME = "createAccountWindow" CLASS = "editorWindow" HIDDEN>
+		<H2>Create New Account</H2>
+		<H3 ID = "selectedPerson1" NAME = "selectedPerson1" CLASS = "editorSelectedRecord"></H3>
+		<P>It appears that this person has not yet had an account set
+		<BR>up for them. Use the input fields below to set up a default
+		<BR>password for their new account and submit to 
+		<BR>activate the account.</P>
+		<BR>
+		<FORM ID = "newAccountForm" NAME = "newAccountForm">
+			<INPUT TYPE = "HIDDEN" ID = "newAccountPersonId" NAME = "newAccountPersonId"></INPUT>
+			<INPUT TYPE = "HIDDEN" ID = "newAccountType" NAME = "newAccountType" VALUE = "student"></INPUT>
+			
+			<TABLE CLASS = "detailsEntry">
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Enter Account Password:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "PASSWORD" ID = "newAccountPassword" NAME = "newAccountPassword" 
+								TITLE = "Enter the new password you wish to have associated with this account. A password must contain at least one uppercase character, one lowercase character and a number between 0 and 9.">
+								</INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Confirm Account Password:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "PASSWORD" ID = "newAccountConfirmPassword" NAME = "newAccountConfirmPassword"
+								TITLE = "Please confirm your new password."></INPUT>
+					</TD>
+				</TR>
+			</TABLE>
+			<BR>
+			<INPUT TYPE = "BUTTON" ONCLICK = "createNewPersonAccount();" VALUE = "Create New Account"></INPUT>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<INPUT TYPE = "BUTTON" TITLE = "Close this window." ONCLICK = "resetEditorWindowToDefault();" VALUE = "Cancel Account Creation"></INPUT>
+		</FORM>
+	</DIV>
+	
+	<!-- This DIV draws the editing options for any selected teacher -->
+	<DIV ID = "accountEditorOptions" NAME = "accountEditorOptions" CLASS = "editorWindow" HIDDEN>
+		<H2>Account Editor</H2>
+		<H3 ID = "selectedPerson2" NAME = "selectedPerson2" CLASS = "editorSelectedRecord"></H3>
+		<P>Use the buttons below to select between
+		<BR>the account reset option and the account removal option.</P>
+		<BR>
+		<TABLE CLASS = "detailsEntry">
+			<TR>
+				<TD CLASS = "editorButtonDisplay">
+					<BUTTON TYPE = "BUTTON" ID = "resetAccount" NAME = "editPerson" CLASS = "editorButton">Reset<BR>Account</BUTTON>
+				</TD>
+				<TD CLASS = "editorButtonDisplay">
+					<BUTTON TYPE = "BUTTON" ID = "removeAccount" NAME = "removePerson" CLASS = "editorButton">Remove<BR>Account</BUTTON>
+				</TD>
+			</TR>
+		</TABLE>
+
+		<!-- Cancel Editor Screen Options -->
+		<DIV ID = "noEditingSelected" NAME = "noEditingSelected" CLASS = "innerEditingWindow" HIDDEN>
+			<BR>
+			<P>If you wish to exit from the account editor, simply click
+			<BR>on the cancel account editor button below.</P>
+			<INPUT TYPE = "BUTTON" TITLE = "Close this window." ONCLICK = "resetEditorWindowToDefault();" VALUE = "Cancel Account Editor"></INPUT>
+		</DIV>
+		
+		<!-- Account Reset Options -->
+		<DIV ID = "resetThisAccount" NAME = "resetThisAccount" CLASS = "innerEditingWindow" HIDDEN>
+			<FORM ID = "resetAccountForm" NAME = "resetAccountForm">
+				<BR>
+				<P>Use the input fields, below, to reset this persons account
+				<BR>password to a default. Note that this should only be
+				<BR>carried out in the case of a forgotten password. Please
+				<BR>be sure to let this person know of the password changes
+				<BR>that you have made after you submit.</P>
+				
+				<!-- Hidden input elements store data which the user cannot change -->
+				<INPUT TYPE = "HIDDEN" ID = "resetAccountPersonId" NAME = "resetAccountPersonId"></INPUT>
+				<INPUT TYPE = "HIDDEN" ID = "resetAccountType" NAME = "resetAccountType" VALUE = "student"></INPUT>
+				
+				<!-- Table to reset the current persons account -->
+				<TABLE CLASS = "detailsEntry">
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Enter Account Password:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "PASSWORD" ID = "resetAccountPassword" NAME = "resetAccountPassword" 
+								TITLE = "Enter the default password you wish to have associated with this account. A password must contain at least one uppercase character, one lowercase character and a number between 0 and 9.">
+								</INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Confirm Account Password:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "PASSWORD" ID = "resetAccountConfirmPassword" NAME = "resetAccountConfirmPassword"
+								TITLE = "Please confirm your default password."></INPUT>
+					</TD>
+				</TR>
+			</TABLE>
+			<BR>
+			<INPUT TYPE = "BUTTON" ONCLICK = "resetPersonAccount();" VALUE = "Reset this Account"></INPUT>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<INPUT TYPE = "BUTTON" TITLE = "Close this window." ONCLICK = "resetEditorWindowToDefault();" VALUE = "Cancel All Changes"></INPUT>
+			</FORM>
+		</DIV>
+		
+		<!-- Account Removal Option -->
+		<DIV ID = "removeThisAccount" NAME = "removeThisAccount" CLASS = "innerEditingWindow"  HIDDEN>
+			<BR>
+			<P>Are you sure that you wish to remove this account
+			<BR>from the system? This account can no longer be
+			<BR>used to log into the application after removal.</P>
+			<BR>
+			<INPUT TYPE = "BUTTON" TITLE = "Remove this account." ONCLICK = "removeSelectedAccount();" VALUE = "Remove this Account"></INPUT>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<INPUT TYPE = "BUTTON" TITLE = "Close this window and cancel all changes." ONCLICK = "resetEditorWindowToDefault();"
+				VALUE = "Cancel all Changes"></INPUT>
+		</DIV>
+	</DIV>
+{% endblock %}
+
+{% block confirmation_windows %}
+<DIV ID = "accountCreated" CLASS = "confirmationWindow" HIDDEN>
+	<BR>
+	<BR>
+	New Account Created Successfully
+</DIV>
+
+<DIV ID = "accountReset" CLASS = "confirmationWindow" HIDDEN>
+	<BR>
+	<BR>
+	Account Reset Successfully
+</DIV>
+
+<DIV ID = "accountRemoved" CLASS = "confirmationWindow" HIDDEN>
+	<BR>
+	<BR>
+	Account Removed Successfully
+</DIV>
+{% endblock %}

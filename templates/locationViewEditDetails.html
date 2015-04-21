@@ -1,0 +1,260 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				19th February 2015
+	Purpose:			This page displays the view/edit locations screen to the user. The user can select any location
+						that they wish and can edit any of the details associated with that location. The edited details
+						are stored if the user clicks "submit" or cancelled if they cancel and exit. Locations can also be
+						removed via this screen.
+-->
+
+{% extends "masterHeadingMenuFooterPage.html" %}
+
+{% block common_jquery %}
+<SCRIPT>
+$(document).ready(function(){ 
+	// Populate the location editor window and show the editing options to the user
+	$(".editableData").click( function() {
+		resetEditorWindowToDefault();
+		
+		var element = $(this).next("input[type=hidden]");
+		var elementValue = $(element).attr("VALUE");
+		var individualAttr = elementValue.split(",");
+		document.getElementById("locationId").value = individualAttr[0]
+		document.getElementById("locationName").value = individualAttr[1];
+		document.getElementById("selectedLocation").innerHTML = individualAttr[1];
+		document.getElementById("addressId").value = individualAttr[2];
+		document.getElementById("streetName1").value = individualAttr[3];
+		document.getElementById("streetName2").value = individualAttr[4];
+		document.getElementById("townOrCity").value = individualAttr[5];
+		document.getElementById("county").value = individualAttr[6];
+		
+		$("#mainEditorWindow").css("height", "60%");
+		$("#mainEditorWindow").finish().show();
+		$("#noEditingSelected").finish().show();
+	});
+	
+	// Display the location editing options to the user
+	$("#editLocation").click( function() {
+		$("#mainEditorWindow").css("height", "82%");
+		$("#removeThisLocation").finish().hide();
+		$("#noEditingSelected").finish().hide();
+		$("#editThisLocation").finish().show();
+	});
+	
+	// Display the remove location option to the user
+	$("#removeLocation").click( function() {
+		$("#mainEditorWindow").css("height", "65%");
+		$("#editThisLocation").finish().hide();
+		$("#noEditingSelected").finish().hide();
+		$("#removeThisLocation").finish().show();
+	});
+	
+	// Hide any of the context menus if the user clicks away from it
+	$(document).bind("mousedown", function (event) {
+		if (!$(event.target).parents("#mainEditorWindow").length > 0) {
+			$("#mainEditorWindow").finish().hide();
+		}
+	});
+});
+
+// Store the edited location in the database
+function storeEditedLocation() {
+	$.ajax({ url: "/submitEditedLocation", data: $('FORM').serialize(), type: 'POST', async: false, success: function(result) {
+						if(result == "OK") {
+							$("#locationUpdated").finish().show();
+							setTimeout(function () {
+								$("#locationUpdated").finish().hide();
+								location.reload();
+							}, 2000);
+						} else {
+							alert(result);
+						}
+					}});
+}
+
+// Remove the selected location from the database
+function removeSelectedLocation() {
+	$.ajax({ url: "/removeLocation", data: $('FORM').serialize(), type: 'POST', async: false, success: function(result) {
+						if(result == "OK") {
+							$("#locationRemoved").finish().show();
+							setTimeout(function () {
+							$("#locationRemoved").finish().hide();
+							location.reload();
+							}, 2000);
+						} else {
+							alert(result);
+						}
+					}});
+}
+</SCRIPT>
+{% endblock %}
+
+{% block common_javascript %}
+<SCRIPT>
+// Set the default appearance options for the location selected
+function resetEditorWindowToDefault() {
+	document.getElementById("locationName").value = "";
+	document.getElementById("streetName1").value = "";
+	document.getElementById("streetName2").value = "";
+	document.getElementById("townOrCity").value = "";
+	document.getElementById("county").value = "";
+	document.getElementById("selectedLocation").innerHTML = "";
+	
+	$("#editThisLocation").finish().hide();
+	$("#removeThisLocation").finish().hide();
+	$("#mainEditorWindow").finish().hide();
+	$("#noEditingSelected").finish().hide();
+}
+</SCRIPT>
+{% endblock %}
+
+{% block main_body_content %}
+	<DIV ALIGN = "CENTER">
+		<H2>Manage Your Schools Locations</H2>
+		<P>Each location associated with your school is listed below.
+		<BR>Simply click on the location name that you wish to edit in order to access advanced editing options.
+		<BR>These options include viewing and editing the location details and an option for removing the location entirely.</P>
+		<BR>
+		<TABLE CLASS = "recordsDisplay">
+			<TR>
+				<TD CLASS = "recordsHeading">
+					<P CLASS = "tableHeading">Select the Location to View/Edit or Remove</P>
+				</TD>
+			</TR>
+			{% for index in range(0, list_of_locations.__len__()): %}
+				<TR>
+					<TD CLASS = "recordsHeading">
+						<P CLASS = "editableData">{{ list_of_locations[index].locationName }}</P>
+						<INPUT TYPE = "HIDDEN" ID = "location{{index}}" NAME = "location{{index}}"
+VALUE = "{{list_of_locations[index].locationId}},{{list_of_locations[index].locationName}},{{list_of_locations[index].addressId}},{{list_of_locations[index].streetName1}},{{list_of_locations[index].streetName2}},{{list_of_locations[index].townOrCity}},{{list_of_locations[index].county}}">
+						</INPUT>
+					</TD>
+				</TR>
+			{% endfor %}
+		</TABLE>
+	</DIV>
+	<BR>
+{% endblock %}
+
+{% block additional_windows %}
+	<!-- This DIV draws the editing options for any selected location -->
+	<DIV ID = "mainEditorWindow" NAME = "mainEditorWindow" CLASS = "editorWindow" HIDDEN>
+		<H2 CLASS = "editorHeading">Location Editor</H2>
+		<H3 ID = "selectedLocation" NAME = "selectedLocation" CLASS = "editorSelectedRecord"></H3>
+		<P>Use the buttons below to select between the
+		<BR>location editor options and the location removal option.</P>
+		<BR>
+		<TABLE CLASS = "detailsEntry">
+			<TR>
+				<TD CLASS = "editorButtonDisplay">
+					<BUTTON TYPE = "BUTTON" ID = "editLocation" NAME = "editLocation" CLASS = "editorButton">View/Edit<BR>Location</BUTTON>
+				</TD>
+				<TD CLASS = "editorButtonDisplay">
+					<BUTTON TYPE = "BUTTON" ID = "removeLocation" NAME = "removeLocation" CLASS = "editorButton">Remove<BR>Location</BUTTON>
+				</TD>
+			</TR>
+		</TABLE>
+		<BR>
+		
+		<!-- Cancel Editor Screen Options -->
+		<DIV ID = "noEditingSelected" NAME = "noEditingSelected" CLASS = "innerEditingWindow" HIDDEN>
+			<P>If you wish to exit from the location editor, click outside
+			<BR>of the location editor window or use the button below.</P>
+			<INPUT TYPE = "BUTTON" TITLE = "Close this window." ONCLICK = "resetEditorWindowToDefault();" VALUE = "Cancel Location Editor"></INPUT>
+		</DIV>
+		
+		<!-- Location Editing Options -->
+		<DIV ID = "editThisLocation" NAME = "editThisLocation" CLASS = "innerEditingWindow" HIDDEN>
+			<FORM>
+				<P>Make changes to your location details in the fields below
+				<BR>and then submit your changes to save them.</P>
+				
+				<!-- Hidden input elements store data which the user cannot change -->
+				<INPUT TYPE = "HIDDEN" ID = "schoolId" NAME = "schoolId" VALUE = "{{ current_school_id }}"></INPUT>
+				<INPUT TYPE = "HIDDEN" ID = "locationId" NAME = "locationId"></INPUT>
+				<INPUT TYPE = "HIDDEN" ID = "addressId" NAME = "addressId"></INPUT>
+				
+				<!-- Table to display editing options -->
+				<TABLE CLASS = "detailsEntry">
+					<TR>
+						<TD CLASS = "detailsHeading">
+							Location Name:&nbsp;
+						</TD>
+						<TD CLASS = "detailsEntry">
+							&nbsp;<INPUT TYPE = "TEXT" ID = "locationName" NAME = "locationName"
+								TITLE = "Enter the edited name for this location." AUTOFOCUS></INPUT>
+						</TD>
+					</TR>
+					<TR>
+						<TD CLASS = "detailsHeading">
+							Street Name 1:&nbsp;
+						</TD>
+						<TD CLASS = "detailsEntry">
+							&nbsp;<INPUT TYPE = "TEXT" ID = "streetName1" NAME = "streetName1"
+								TITLE = "Enter the edited street name for your location."></INPUT>
+						</TD>
+					</TR>
+					<TR>
+						<TD CLASS = "detailsHeading">
+							Street Name 2:&nbsp;
+						</TD>
+						<TD CLASS = "detailsEntry">
+							&nbsp;<INPUT TYPE = "TEXT" ID = "streetName2" NAME = "streetName2"
+								TITLE = "Enter the edited street name for your location."></INPUT>
+						</TD>
+					</TR>
+					<TR>
+						<TD CLASS = "detailsHeading">
+							Town or City:&nbsp;
+						</TD>
+						<TD CLASS = "detailsEntry">
+							&nbsp;<INPUT TYPE = "TEXT" ID = "townOrCity" NAME = "townOrCity"
+								TITLE = "Edit the town or city in which your location is based.">
+						</TD>
+					</TR>
+					<TR>
+						<TD CLASS = "detailsHeading">
+							County:&nbsp;
+						</TD>
+						<TD CLASS = "detailsEntry">
+							&nbsp;<INPUT TYPE = "TEXT" ID = "county" NAME = "county"
+								TITLE = "Edit the county in which your location is based."></INPUT>
+						</TD>
+					</TR>
+				</TABLE>
+				<BR>
+				<INPUT TYPE = "BUTTON" TITLE = "Submit the edited location details." ONCLICK = "storeEditedLocation();" VALUE = "Submit Changes"></INPUT>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<INPUT TYPE = "BUTTON" TITLE = "Close this window and cancel all changes." ONCLICK = "resetEditorWindowToDefault();" 
+					VALUE = "Cancel all Changes"></INPUT>
+			</FORM>
+		</DIV>
+		
+		<!-- Lesson Removal Option -->
+		<DIV ID = "removeThisLocation" NAME = "removeThisLocation" CLASS = "innerEditingWindow" HIDDEN>
+			<P>Are you sure that you wish to remove this location
+			<BR>from the system? This location can no longer be used for
+			<BR>timetable scheduling after this removal.</P>
+			<BR>
+			<INPUT TYPE = "BUTTON" TITLE = "Remove this location." ONCLICK = "removeSelectedLocation();" VALUE = "Remove this Location"></INPUT>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<INPUT TYPE = "BUTTON" TITLE = "Close this window and cancel all changes." ONCLICK = "resetEditorWindowToDefault();" 
+				VALUE = "Cancel all Changes"></INPUT>
+		</DIV>
+	</DIV>
+{% endblock %}
+
+{% block confirmation_windows %}
+<DIV ID = "locationUpdated" CLASS = "confirmationWindow" HIDDEN>
+	<BR>
+	<BR>
+	Location Details Updated Successfully
+</DIV>
+
+<DIV ID = "locationRemoved" CLASS = "confirmationWindow" HIDDEN>
+	<BR>
+	<BR>
+	Location Removed Successfully
+</DIV>
+{% endblock %}

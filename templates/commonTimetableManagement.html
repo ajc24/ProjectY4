@@ -1,0 +1,119 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				14th April 2015
+	Purpose:			Commonly used code across all timetable management and editing screens.
+-->
+
+{% extends "masterHeadingMenuPage.html" %}
+
+{% block common_javascript %}
+<SCRIPT>
+// Commonly used Global Variables
+var mainElementWidth = 120;					// Width of each main timetable element (in pixels)
+var mainElementHeight = 50;					// Height of each main timetable element (in pixels)
+var timetableRightmostBoundaries = [];		// Array of co-ordinates marking the right-most boundaries of the timetable
+var timetableLeftmostBoundaries = [];		// Array of co-ordinates marking the left-most boundaries of the timetable
+var numberOfTimetabledLessons = 0;			// Number of lessons used on the timetable in this session (including removed lessons)
+var lessonStartXPos = 0;					// The reference point from which all lessons are scheduled from (for x axis placement)
+var lessonStartYPos = 0;					// The reference point from which all lessons are scheduled from (for y axis placement)
+var timetableStartHour = 0;					// Start hour of the timetable display (not necessarily an individual days start hour)
+var timetableEndHour = 0;					// End hour of the timetable display (not necessarily an individual days end hour)
+var xGridAlignment = 10;					// Number of pixels the elements should move along the X Axis
+var yGridAlignment = 50;					// Number of pixels the elements should move along the Y Axis
+
+// Output the correct time heading in each time heading paragraph display
+function displayCorrectTimeHeading(timeHeadingId, startHour) {
+	var timeHeadingDisplay = "";
+	if(startHour < 10) {
+		timeHeadingDisplay += "0" + startHour + ".00 - ";
+	} else {
+		timeHeadingDisplay += startHour + ".00 - ";
+	}
+	if((startHour + 1) < 10) {
+		timeHeadingDisplay += "0" + (startHour + 1) + ".00";
+	} else {
+		timeHeadingDisplay += (startHour + 1) + ".00";
+	}
+	document.getElementById(timeHeadingId).innerHTML = timeHeadingDisplay;
+}
+
+// Output the correct day heading in each day heading paragraph display
+function displayCorrectDayHeading(dayHeadingId, dayIndex) {
+	var dayDisplay = "";
+	switch(dayIndex) {
+		case 1:		dayDisplay += "Monday";
+					break;
+		case 2:		dayDisplay += "Tuesday";
+					break;
+		case 3:		dayDisplay += "Wednesday";
+					break;
+		case 4:		dayDisplay += "Thursday";
+					break;
+		case 5:		dayDisplay += "Friday";
+					break;
+		case 6:		dayDisplay += "Saturday";
+					break;
+		case 7:		dayDisplay += "Sunday";
+					break;
+	}
+	document.getElementById(dayHeadingId).innerHTML = dayDisplay;
+}
+
+// Output all "unavailable" areas of the timetable and the "droppable" area of the timetable
+function displayUnavailableAndDroppableSections(dayHeadingId, dayIndex, dayStartHour, dayEndHour) {
+	var dayHeadingBoundingRectangle = document.getElementById(dayHeadingId).getBoundingClientRect();
+	var xPosOfDayHeading = dayHeadingBoundingRectangle.left;
+	var yPosOfDayHeading = dayHeadingBoundingRectangle.top;
+	var startXPos = xPosOfDayHeading + mainElementWidth;
+	var startYPos = yPosOfDayHeading;
+	var mainHTMLBody = document.getElementById("body");
+	var unGridIndex = 0;
+	
+	// Draw any unavailable sections before the start of the current day
+	var index = 0;
+	for(index = timetableStartHour; index < dayStartHour; index ++) {
+		for(unGridIndex = 0; unGridIndex < 4; unGridIndex ++) {
+			var unavailableZone = document.createElement("P");
+			unavailableZone.setAttribute("ID", "unavailableZone" + index + ":" +  unGridIndex);
+			unavailableZone.setAttribute("NAME", "unavailableZone" + index + ":" +  unGridIndex);
+			unavailableZone.setAttribute("CLASS", "editorUnavailableGrid");
+			unavailableZone.style.top = "" + startYPos + "px";
+			unavailableZone.style.left = "" + startXPos + "px";
+				
+			mainHTMLBody.appendChild(unavailableZone);	
+			startXPos += (mainElementWidth / 4);
+		}
+	}
+	timetableLeftmostBoundaries.push({ xValue: startXPos });					// Add the leftmost boundary to the array of boundaries
+	
+	// Draw the drop zone area of the timetable
+	var dropZone = document.createElement("P");
+	dropZone.setAttribute("ID", "dropZone" + dayIndex);
+	dropZone.setAttribute("NAME", "dropZone" + dayIndex);
+	dropZone.setAttribute("CLASS", "dropZone");
+	dropZone.style.top = "" + startYPos + "px";
+	dropZone.style.left = "" + startXPos + "px";
+	dropZone.style.width = "" + ((dayEndHour - dayStartHour) * mainElementWidth) + "px";
+	mainHTMLBody.appendChild(dropZone);
+	
+	startXPos = startXPos + ((dayEndHour - dayStartHour) * mainElementWidth);
+	timetableRightmostBoundaries.push({ xValue: startXPos });					// Add the rightmost boundary to the array of boundaries
+	
+	// Finally, draw any unavailable sections after the end of the current day
+	for(index = dayEndHour; index < timetableEndHour; index ++) {
+		for(unGridIndex = 0; unGridIndex < 4; unGridIndex ++) {
+			var unavailableZone = document.createElement("P");
+			unavailableZone.setAttribute("ID", "unavailableZone" + index + ":" +  unGridIndex);
+			unavailableZone.setAttribute("NAME", "unavailableZone" + index + ":" +  unGridIndex);
+			unavailableZone.setAttribute("CLASS", "editorUnavailableGrid");
+			unavailableZone.style.top = "" + startYPos + "px";
+			unavailableZone.style.left = "" + startXPos + "px";
+			
+			mainHTMLBody.appendChild(unavailableZone);	
+			startXPos += (mainElementWidth / 4);
+		}
+	}
+}
+</SCRIPT>
+{% endblock %}

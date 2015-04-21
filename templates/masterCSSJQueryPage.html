@@ -1,0 +1,14 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				17th January 2015
+	Purpose:			Adds the CSS and JQuery links to the masterHTMLPage.html file.
+-->
+
+{% extends "masterHTMLPage.html" %}
+
+{% block additional_links %}
+	<LINK REL = "stylesheet" HREF = "/static/MSMCss.css">									<!-- Link to the CSS for the application -->
+	<SCRIPT SRC = "http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.11.1.min.js"></SCRIPT> 	<!-- Load JQuery into the application -->
+	<SCRIPT SRC = "http://code.jquery.com/ui/1.11.2/jquery-ui.js"></SCRIPT>					<!-- Load JQuery UI into the application -->
+{% endblock %}

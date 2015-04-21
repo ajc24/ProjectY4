@@ -1,0 +1,31 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				24th March 2015
+	Purpose:			Display a confirmation message to the user informing them of successful registration.
+-->
+
+{% extends "masterHeadingMenuFooterPage.html" %}
+
+{% block common_javascript %}
+<SCRIPT>
+function returnToLoginPage() {
+	window.location.replace("/")
+}
+</SCRIPT>
+{% endblock %}
+
+{% block main_body_content %}
+	<DIV ALIGN = "CENTER">
+		<H2>Registration Successfully Completed</H2>
+		<P>
+		Thank you for taking the time to register your new school with our application.<BR>
+		You may now log in to our application using the email address and password combination that you set during this registration process.<BR><BR>
+		We hope that you will enjoy using our application!
+		</P>
+		<BR>
+		<INPUT TYPE = "BUTTON" ONCLICK = "returnToLoginPage()" VALUE = "Return to Login"></INPUT>
+		<BR>
+		<BR>
+	</DIV>
+{% endblock %}

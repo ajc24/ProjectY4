@@ -1,0 +1,64 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				15th February 2015
+	Purpose:			The master page for all HTML files in this application. This page provides the structure
+						of the HTML files as well as providing all of the "blocks" which can then be inherited and
+						used by all of the files in the application.
+-->
+
+<!DOCTYPE HTML>
+<HEAD>
+<TITLE>{{ page_title }}</TITLE>
+	{% block additional_links %}
+		<!-- Block for linking the page to the required CSS file (for styling). Also used to link the page to JQuery and JQuery UI -->
+	{% endblock %}
+	
+	{% block menu_bar_jquery %}
+		<!-- The JQuery in this block deals with all of the menu bar selections -->
+	{% endblock %}
+	
+	{% block common_jquery %}
+		<!-- Block for adding commonly used JQuery code to any page in the application -->
+	{% endblock %}
+	
+	{% block additional_jquery %}
+		<!-- Block for adding any additional JQuery (if a page requires more than what's in the common block) -->
+	{% endblock %}
+	
+	{% block common_javascript %}
+		<!-- Block for adding commonly used javascript code to any page in the application -->
+	{% endblock %}
+	
+	{% block additional_javascript %}
+		<!-- Block for adding any additional javascript (if a page requires more than what's in the common block) -->
+	{% endblock %}
+	
+	{% block footer_javascript %}
+		<!-- The JavaScript in this block deals with the footer tips displays -->
+	{% endblock %}
+</HEAD>
+
+<BODY ID = "body" NAME = "body" CLASS = "body">
+	{% block main_heading_and_menu_bar %}
+		<!-- Block for displaying the main heading and menu bar across all pages in the application -->
+	{% endblock %}
+	
+	{% block main_body_content %}
+		<!-- The main content of each page will be displayed in this block -->
+	{% endblock %}
+	
+	{% block main_body_footer %}
+		<!-- The main footer for each page is displayed in this block -->
+	{% endblock %}
+	
+	{% block additional_windows %}
+		<!-- Additional windows such as pop up editor windows are coded into this block -->
+	{% endblock %}
+	
+	{% block confirmation_windows %}
+		<!-- The confirmation windows which display confirmation messages to the user are coded into this block -->
+	{% endblock %}
+</BODY>
+
+</HTML>

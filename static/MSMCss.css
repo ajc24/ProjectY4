@@ -1,0 +1,594 @@
+body, div, h1, p, a, ul, button {
+	font-family:		Verdana;
+	font-size:			12px;
+	color:				#333333;
+	background-color:	#F8F7DF;
+	cursor: 			default;
+}
+
+a, a:link, a:visited {
+	text-decoration:	none;
+}
+
+a:hover, a:active {
+	background-color:	#591434;
+	color:				white;
+}
+
+a.contextMenuLink {
+	font-size:			14px;
+	background-color:	#F8F7DF;
+}
+
+a.contextMenuLink:hover, a.contextMenuLink:focus, a.contextMenuLink:active {
+	background-color:	#591434;
+	color:				white;
+}
+
+a.inactive, a.inactive:hover {
+	background-color:	#F8F7DF;
+	color:				#333333;
+}
+
+a.menuLink {
+	display:			inline-block;
+	font-size:			14px;
+	background-color:	#E5E2C9;
+	text-decoration:	none;
+	height:				75%;
+	padding-top: 		10px;
+}
+
+a.menuLink:hover, a.menuLink:focus, a.menuLink:active {
+	background-color:	#591434;
+	color:				white;
+}
+
+body.body {
+	margin:				0; 
+	padding:			0; 
+	font-size:			12px; 
+}
+
+br.clearFloat {
+	clear:				both;
+}
+
+button.editorButton {
+	border:				3px solid;
+	border-color:		#333333;
+	border-radius:		0px;
+	font-size:			18px;
+	text-decoration:	none;
+	outline:			none;
+	height:				80px;
+	width:				100px;
+}
+
+div {
+	color:				#F8F7DF;
+}
+
+div.confirmationWindow {
+	position:			fixed;
+	top:				40%;
+	left:				32%;
+	height:				20%;
+	width:				35%;
+	z-index:			150;
+	border-style:		solid;
+	border-width:		3px;
+	border-color:		#333333;
+	background-color:	#F8F7DF;
+	color:				#333333;
+	font-family:		Verdana;
+	font-size:			20px;
+	text-align:			center;
+}
+
+div.editorDivTable {
+	display:			table;
+	margin:				0 auto;
+	padding:			0px;
+}
+
+div.editorMessageWindow {
+	position:			fixed;
+	top:				0%;
+	left:				32%;
+	height:				20%;
+	width:				35%;
+	z-index:			150;
+	border-style:		solid;
+	border-width:		3px;
+	border-color:		#333333;
+	background-color:	#F8F7DF;
+	color:				#333333;
+	font-family:		Verdana;
+	font-size:			20px;
+	text-align:			center;
+}
+
+div.editorWindow {
+	position:			fixed;
+	top:				0px;
+	left:				59%;
+	height:				99%;
+	width:				40%;
+	z-index:			95;
+	border-style:		solid;
+	border-width:		3px;
+	border-color:		#333333;
+	background-color:	#F8F7DF;
+	text-align:			center;
+}
+
+div.footer {
+	color:				#CCCCCC; 
+	background-color:	#48282F;
+	width:				100%;
+}
+
+div.footerLeft {
+	width:				66%;
+	float:				left;
+	text-align:			center;
+	color:				#333333;
+}
+
+div.footerRight {
+	left:				66%;
+	width:				34%;
+	float:				left;
+	text-align:			left;
+	color:				#333333;
+}
+
+div.headingLeft {
+	border-style:		solid;
+	border-width:		5px;
+	border-color:		#333333;
+	border-left:		none;
+	border-right:		none;
+	border-bottom:		none;
+	position:			fixed;
+	top:				0%;
+	left:				0%;
+	width:				66%;
+	float:				left;
+	text-indent:		100px;
+	height:				150px;
+	z-index:			90;
+}
+
+div.headingOptions {
+	text-align:			center;
+}
+
+div.headingRight {
+	border-style:		solid;
+	border-width:		5px;
+	border-color:		#333333;
+	border-left:		none;
+	border-right:		none;
+	border-bottom:		none;
+	position:			fixed;
+	top:				0%;
+	left:				66%;
+	width:				34%;
+	float:				left;
+	height:				150px;
+	z-index:			90;
+}
+
+div.innerEditingWindow {
+	width:				100%;
+	text-align:			center;
+}
+
+div.loginName {
+	padding:			5px;
+	border-radius:		5px;
+	width:				95%;
+	background-color:	#333333;
+	color:				#848484;
+	word-wrap:			break-word;
+}
+
+div.menuBar {
+	position:			fixed;
+	height:				40px;
+	background-color:	#E5E2C9;
+	width:				100%;
+	text-align:			center;
+	z-index:			90;
+}
+
+div.tutorialHeading {
+	background-color:	#48282F;
+	text-align:			left;
+}
+
+div.tutorialHeading h2 {
+	margin:				0;
+	padding:			8px;
+	border-bottom:		1px dotted #999999;
+	width:				70%;
+	color:				#CCCCCC;
+	text-indent:		-5px;
+}
+
+div.tutorialContent {
+	width:				100%;
+	background-color:	#48282F;
+	text-align:			left;
+}
+
+h1.mainHeading {
+	padding:			0px;
+	margin:				0px;
+	font-size:			35px;
+	font-family:		Georgia;
+	font-weight:		400;
+	text-indent:		100px;
+}
+
+h2 {
+	font-family:		Georgia;
+	font-size:			20px;
+	font-weight:		400;
+	color:				#333333;
+}
+
+h2.editorHeading {
+	font-size:			25px;
+}
+
+h3 {
+	font-family:		Georgia;
+	font-size:			16px;
+	font-weight:		400;
+	color:				#333333;
+	word-wrap:			break-word;
+}
+
+h3.editorSelectedRecord {
+	font-size:			16px;
+}
+
+input[type=button] {
+	border:				1px solid #333333;
+	border-radius:		5px;
+	background-color:	#333333;
+	color:				white;
+	font-family:		Verdana;
+	font-size:			14px;
+}
+
+input[type=text], input[type=email], input[type=password]  {
+	border:				1px solid #333333;
+	color:				#333333;
+	background-color:	#F8F7DF;
+	font-family:		Verdana;
+	font-size:			12px;
+	text-indent:		3px;
+}
+
+input[type=text].classroomDetails {
+	width:				271px;
+}
+
+input[type=text].innerWindowEntry {
+	width:				175px;
+}
+
+input[type=text].schoolDetails, input[type=email].schoolDetails, input[type=password].schoolDetails {
+	width:				260px;
+}
+
+input[type=text].searchInput {
+	border-style:		double;
+	border-width:		3px;
+	text-decoration:	none;
+	outline:			none;
+	width:				250px;
+}
+
+p.draggableLesson {
+	clear:				both;
+	position:			absolute;
+	z-index:			20;
+	box-sizing:			border-box;
+	border-style:		solid;
+	border-color:		#333333;
+	border-width:		1px;
+	height: 			50px;
+	font-size:			8px;
+	font-family:		Verdana;
+	color:				#333333;
+	margin:				0;
+	padding:			0;
+	word-wrap:			break-word;
+}
+
+p.dropZone {
+	position:			absolute;
+	background-color:	transparent;
+	height:				50px;
+	z-index:			5;
+	padding:			0px;
+	margin:				0px;
+}
+
+p.editableData {
+	padding:			0px;
+	margin:				5px;
+	font-size:			14px;
+	text-align:			center;
+}
+
+p.editorCornerBlock {
+	position:			absolute;
+	box-sizing:			border-box;
+	border-top:			solid;
+	border-left:		solid;
+	border-right:		solid;
+	border-bottom:		solid;
+	border-color:		#333333;
+	border-width:		1px;
+	background-color:	#F8F7DF;
+	width:				120px;
+	height:				50px;
+	float:				left;
+	margin:				0px;
+	padding:			0px;
+}
+
+p.editorDayHeading {
+	position:			absolute;
+	box-sizing:			border-box;	
+	border-left:		solid;
+	border-right:		solid;
+	border-bottom:		solid;
+	border-color:		#333333;
+	border-width:		1px;
+	background-color:	#F8F7DF;
+	color:				#333333;
+	width:				120px;
+	height:				50px;
+	font-family:		Georgia;
+	font-size:			16px;
+	z-index:			0;
+	text-indent:		5px;
+	clear:				both;
+	float:				left;
+	margin:				0px;
+}
+
+p.editorInternalGrid {
+	position:			absolute;
+	box-sizing:			border-box;	
+	border-right:		solid;
+	border-bottom:		solid;
+	border-color:		#333333;
+	border-width:		1px;
+	background-color:	#F8F7DF;
+	width:				30px;
+	height:				50px;
+	z-index:			0;
+	float:				left;
+	margin:				0px;
+}
+
+p.editorTimeHeading {
+	position:			absolute;
+	box-sizing:			border-box;
+	border-top:			solid;
+	border-right:		solid;
+	border-bottom:		solid;
+	border-color:		#333333;
+	border-width:		1px;
+	background-color:	#F8F7DF;
+	font-family:		Georgia;
+	font-size:			16px;
+	color:				#333333;
+	width:				120px;
+	height:				50px;
+	z-index:			1;
+	float:				left;
+	margin:				0px;
+	padding:			8px;
+	text-indent:		2px;
+}
+
+p.editorUnavailableGrid {
+	position:			absolute;
+	box-sizing:			border-box;	
+	border-right:		solid;
+	border-bottom:		solid;
+	border-color:		#333333;
+	border-width:		1px;
+	background-color:	#D8D8D8;
+	width:				30px;
+	height:				50px;
+	z-index:			2;
+	float:				left;
+	margin:				0px;
+	padding:			0px;
+}
+
+p.loginName {
+	margin:				0px;
+	padding:			0px;
+	background-color:	#333333;
+	color:				white;
+}
+
+p.mainSubtitle {
+	padding:			0px;
+	margin:				0px;
+	font-size:			13px;
+	color:				#333333;
+}
+
+p.tableDetails {
+	padding:			0;
+	margin:				1px;
+	color:				#333333;
+	font-family:		Verdana;
+	font-size:			14px;
+}
+
+p.tableHeading {
+	margin:				0;
+	padding:			5px;
+	color:				#333333;
+	font-family:		Georgia;
+	font-size:			18px;
+	text-decoration: 	underline;
+}
+
+p.tutorialData {
+	width:				100%;
+	color:				#E5E2C9;
+	background-color:	#48282F;
+	text-align:			left;
+}
+
+select {
+	margin:				0;
+	padding:			0;
+	font-size:			14px;
+	font-family:		Verdana;
+	border-radius:		0px;
+	border:				1px solid #333333;
+	text-indent:		1px;
+	width:				275px;
+	background-color:	#F8F7DF;
+	color:				#333333;
+}
+
+select.timeSelect {
+	width:				100px;
+}
+
+select.colourSelect {
+	height:				20px;
+	width:				265px;
+}
+
+select.innerWindowLocationSelect {
+	width:				180px;
+}
+
+select.editableColourSelect {
+	height:				20px;
+	width:				158px;
+}
+
+table.detailsEntry {
+	border:				none;
+	width:				100%;
+}
+
+table.footerSpacing {
+	border:				none;
+	width:				10%;
+	height:				155px;
+	float:				left;
+	background-color:	#48282F;
+}
+
+table.footerContent {
+	border:				none;
+	width:				20%;
+	float:				left;
+	background-color:	#48282F;
+	height:				155px;
+}
+
+table.openingHoursDisplay {
+	border:				none;
+	width:				50%;
+}
+
+table.recordsDisplay {
+	width:				40%;
+	border-width:		1px;
+	border-style:		solid;
+	border-color:		#333333;
+}
+
+td.detailsHeading {
+	width:				50%;
+	text-align:			right;
+	color:				#333333;
+}
+
+td.detailsEntry {
+	width:				50%;
+	text-align:			left;
+}
+
+td.editorButtonDisplay {
+	width:				50%;
+	text-align:			center;
+}
+
+td.editorTableDisplay {
+	border:				none;
+	width:				100%;
+	text-align:			center;
+}
+
+td.openingHoursHeadings {
+	width:				25%;
+	text-align:			center;
+}
+
+td.recordsHeading {
+	width:				100%;
+	border-width:		1px;
+	border-style:		solid;
+	border-color:		#333333;
+	text-align:			center;
+}
+
+td.tutorialDisplay {
+	border:				none;
+	width:				100%;
+	background-color:	#48282F;
+}
+
+ul.menuBarContextMenu, ul.editorContextMenu {
+	display: 			none;
+    position: 			absolute;
+	z-index: 			100;
+    overflow: 			hidden;
+    border: 			3px solid #333333;
+    white-space: 		nowrap;
+    padding-top: 		8px;
+	padding-bottom:		8px;
+	background-color:	#F8F7DF;
+	text-indent:		-40px;
+}
+
+ul.menuBarContextMenu li, ul.editorContextMenu li {
+	list-style-type: 	none;
+}
+
+.searchList {
+	position:			absolute;
+	padding: 			1px;
+	max-height: 		250px;
+	max-width:			250px;
+	overflow:			auto;
+	background-color:	#F8F7DF;
+	color:				#333333;
+	border:				3px double;
+	border-color:		#333333;
+	font-family:		Verdana;
+	font-size:			12px;
+	text-indent:		5px;
+	z-index:			96;
+}

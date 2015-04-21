@@ -1,0 +1,76 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				7th March 2015
+	Purpose:			This page displays the add new classroom screen to the user. The user enters the
+						new classroom details and submits it. It is then stored in the database.
+-->
+
+{% extends "masterHeadingMenuFooterPage.html" %}
+
+{% block common_jquery %}
+<SCRIPT>
+// Store the new lesson details
+function addNewClassroom() {
+	$.ajax({ url: "/submitNewClassroom", data: $("FORM").serialize(), type: "POST", async: false, success: function(result) {
+						if(result == "OK") {
+							$(".confirmationWindow").finish().show();
+							setTimeout(function () {
+								$(".confirmationWindow").finish().hide();
+								document.getElementById("roomName").value = "";
+							}, 2000);
+						} else {
+							alert(result);
+						}
+					}});
+}
+</SCRIPT>
+{% endblock %}
+
+{% block main_body_content %}
+	<DIV ALIGN = "CENTER">
+		<H2>Add a New Classroom to a Location</H2>
+		<P>Select one of your school locations and enter a new classroom to be linked to this location.
+		<BR>When you are finished, submit these details to automatically link it to your school.</P>
+		<BR>
+		<FORM>
+			<!-- Output the table which will present all options which can be edited to the user -->
+			<TABLE CLASS = "detailsEntry">
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Location:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<SELECT ID = "locationId" NAME = "locationId" CLASS = "locationSelect"
+								TITLE = "Select a location that you wish to link the new classroom to.">
+							<OPTION SELECTED HIDDEN VALUE = "not set">Please Select a Location</OPTION>
+							{% for index in range(0, list_of_locations.__len__()): %}
+								<OPTION VALUE = "{{ list_of_locations[index].locationId }}">{{ list_of_locations[index].locationName }}</OPTION>
+							{% endfor %}
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Room Name:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "roomName" NAME = "roomName" CLASS = "classroomDetails"
+								TITLE = "Enter the room name (of max 10 characters) that you wish to link to your chosen location." AUTOFOCUS></INPUT>
+					</TD>
+				</TR>
+			</TABLE>
+			<BR>
+			<INPUT TYPE = "BUTTON" TITLE = "Submit the new student group to the database for storage."
+				ONCLICK = "addNewClassroom();" VALUE = "Submit New Classroom"></INPUT>
+		</FORM>
+	</DIV>
+	<BR>
+{% endblock %}
+
+{% block confirmation_windows %}
+<DIV CLASS = "confirmationWindow" HIDDEN>
+<BR>
+<BR>
+New Classroom Added Successfully
+</DIV>
+{% endblock %}

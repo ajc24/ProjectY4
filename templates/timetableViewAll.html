@@ -1,0 +1,192 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				14th April 2015
+	Purpose:			This page allows the user to view their timetable.
+-->
+
+{% extends "commonTimetableManagement.html" %}
+
+{% block main_body_content %}
+	<SCRIPT>
+		// Set the default timetable attributes before the page loads
+		timetableStartHour = parseInt("{{ start_hour }}");
+		timetableEndHour = parseInt("{{ end_hour }}");
+	</SCRIPT>
+	
+	<!-- Only draw the timetable if there are open days set by the school(s) -->
+	{% if list_of_weekdays.__len__() > 0: %}
+		
+		<!-- Set up the DIV element for the entire timetable -->
+		<BR>
+		<DIV ID = "mainDivElement" CLASS = "editorDivTable">
+		
+			<!-- Render the corner block for the timetable -->
+			<P ID = "cornerBlock" NAME = "cornerBlock" CLASS = "editorCornerBlock"></P>
+			<SCRIPT>
+				var cornerBlock = document.getElementById("cornerBlock");
+				cornerBlock.style.left = "0px";
+			</SCRIPT>
+			
+			<!-- Draw the hourly headings across the top of the timetable -->
+			{% for index in range(start_hour, end_hour): %}
+				<P ID = "timeHeading{{index}}" CLASS = "editorTimeHeading"></P>
+				{% if index == start_hour: %}
+					<SCRIPT>
+						var startTimeHeading = document.getElementById("timeHeading{{index}}");
+						startTimeHeading.style.top = "" + $("#cornerBlock").offset().top + "px";
+						startTimeHeading.style.left = "" + ($("#cornerBlock").offset().left + mainElementWidth) + "px";
+					</SCRIPT>
+				{% else: %}
+					<SCRIPT>
+						var previousIndex = parseInt("{{index}}") - 1;
+						var startTimeHeading = document.getElementById("timeHeading{{index}}");
+						startTimeHeading.style.top = "" + $("#timeHeading" + previousIndex).offset().top + "px";
+						startTimeHeading.style.left = "" + ($("#timeHeading" + previousIndex).offset().left + mainElementWidth) + "px";
+					</SCRIPT>
+				{% endif %}
+				<SCRIPT>
+					displayCorrectTimeHeading("timeHeading{{index}}", parseInt("{{index}}"));
+				</SCRIPT>
+			{% endfor %}
+			
+			<!-- Now determine the location of the lessons starting positions -->
+			<SCRIPT>
+				lessonStartXPos = $("#cornerBlock").offset().left + mainElementWidth;
+				lessonStartYPos = $("#cornerBlock").offset().top + mainElementHeight;
+			</SCRIPT>
+			
+			<!-- Draw the day headings and the inner grid of the timetable -->
+			<SCRIPT>
+				var numberOfDaysPrinted = 1;
+			</SCRIPT>
+			{% for index in range(0, list_of_weekdays.__len__()): %}
+				<!-- Draw the day heading -->
+				<P ID = "dayHeading{{list_of_weekdays[index]}}" CLASS = "editorDayHeading"></P>
+				<SCRIPT>
+					var dayHeading = document.getElementById("dayHeading{{list_of_weekdays[index]}}");
+					dayHeading.style.top = "" + ($("#cornerBlock").offset().top + (mainElementHeight * numberOfDaysPrinted)) + "px";
+					dayHeading.style.left = "0px";
+					
+					displayCorrectDayHeading("dayHeading{{list_of_weekdays[index]}}", parseInt("{{list_of_weekdays[index]}}"));
+					numberOfDaysPrinted ++;
+				</SCRIPT>
+				
+				<!-- Draw the inner grid for this day -->
+				<SCRIPT>
+					var startingXPos = $("#dayHeading{{list_of_weekdays[index]}}").offset().left + mainElementWidth;
+					var startingYPos = $("#dayHeading{{list_of_weekdays[index]}}").offset().top;
+				</SCRIPT>
+				{% for gridIndex in range(start_hour, end_hour): %}
+					{% for quarterHourIndex in range(0, 4): %}
+						<P ID = "internalGrid{{index}}{{gridIndex}}{{quarterHourIndex}}" CLASS = "editorInternalGrid"></P>
+						<SCRIPT>
+							var gridElement = document.getElementById("internalGrid{{index}}{{gridIndex}}{{quarterHourIndex}}");
+							gridElement.style.top = "" + startingYPos + "px";
+							gridElement.style.left = "" + startingXPos + "px";
+							
+							startingXPos += (mainElementWidth / 4);
+						</SCRIPT>
+					{% endfor %}
+				{% endfor %}
+				
+				<!-- Draw the unavailable zones onto the timetable (if any) -->
+				{% for unavailableIndex in range(0, open_days_and_times.__len__()): %}
+					
+					<!-- Find the weekday matching to the current weekday being drawn -->
+					{% if open_days_and_times[unavailableIndex].weekdayId == list_of_weekdays[index]: %}
+						
+						<!-- Mark the entire day as "Unavailable" if this school is closed for this day -->
+						{% if open_days_and_times[unavailableIndex].timeId == 0: %}
+							<SCRIPT>
+								displayUnavailableAndDroppableSections("dayHeading{{list_of_weekdays[index]}}", 
+																			parseInt("{{list_of_weekdays[index]}}"),
+																			timetableStartHour, timetableEndHour);
+							</SCRIPT>
+						<!-- Find the opening and closing times for this day and mark any "excess" areas as unavailable -->
+						{% else %}
+							{% for timesIndex in range(0, open_times.__len__()): %}
+							
+								<!-- Draw the unavailable section for any times outside of the times drawn -->
+								{% if open_times[timesIndex].timeId == open_days_and_times[unavailableIndex].timeId: %}
+									<SCRIPT>
+										var thisDayStartHourString = "{{open_times[timesIndex].startTime}}";
+										var thisDayEndHourString = "{{open_times[timesIndex].endTime}}";
+										thisDayStartHourString = thisDayStartHourString.substring(0, thisDayStartHourString.indexOf(":"));
+										thisDayEndHourString = thisDayEndHourString.substring(0, thisDayEndHourString.indexOf(":"));
+										
+										var thisDayStartHour = parseInt(thisDayStartHourString);
+										var thisDayEndHour = parseInt(thisDayEndHourString);
+										
+										displayUnavailableAndDroppableSections("dayHeading{{list_of_weekdays[index]}}", 
+																				parseInt("{{list_of_weekdays[index]}}"),
+																				thisDayStartHour, thisDayEndHour);
+									</SCRIPT>
+								{% endif %}
+							{% endfor %}
+						{% endif %}
+					{% endif %}
+				{% endfor %}
+			{% endfor %}
+			
+		<!-- Draw timetabled lessons if any have been previously stored -->
+		{% if list_of_timetabled_lessons.__len__() > 0: %}
+			{% for eachLesson in list_of_timetabled_lessons: %}
+				<SCRIPT>
+					numberOfTimetabledLessons ++;
+					var currentAccount = "{{timetable_to_draw}}";
+					
+					// Set the lesson name, length, teacher, location and classroom details matched to this lesson
+					var abbreviatedName = "{{eachLesson.schoolLessonId}}";
+					var lessonLength = parseInt("{{eachLesson.lessonLength}}");
+					var teacherId = parseInt("{{eachLesson.teacherId}}");
+					var schoolId = parseInt("{{eachLesson.schoolId}}");
+					var locationId = parseInt("{{eachLesson.locationId}}");
+					var classroomName = "{{eachLesson.classroomId}}";
+					
+					// Get the X and Y positions that the lesson needs to be drawn at
+					var weekdayId = parseInt("{{eachLesson.weekdayId}}");
+					var dayHeadingElement = document.getElementById("dayHeading" + weekdayId);
+					var boundingRect = dayHeadingElement.getBoundingClientRect();
+					var yPosition = boundingRect.top;
+					
+					var xPosition = lessonStartXPos;
+					var startHour = parseInt("{{eachLesson.startHour}}");
+					var startMin = parseInt("{{eachLesson.startMin}}");
+					var startingPos = timetableStartHour;
+					
+					xPosition += ((startHour - startingPos) * mainElementWidth);
+					xPosition += ((startMin / 5) * xGridAlignment);
+	
+					// Add this lesson to the timetable
+					var newLesson = document.createElement("P");
+					newLesson.setAttribute("ID", "lesson" + numberOfTimetabledLessons);
+					newLesson.setAttribute("NAME", "lesson" + numberOfTimetabledLessons);
+					newLesson.setAttribute("CLASS", "draggableLesson");
+					newLesson.style.width = "" + (lessonLength * 2) + "px";
+					newLesson.style.top = "" + yPosition + "px";
+					newLesson.style.left = "" + xPosition + "px";
+					newLesson.style.backgroundColor = "#E5E2C9";
+					
+					var lessonInnerHTML = "";
+					if(currentAccount == "Classroom" ) {
+						lessonInnerHTML += abbreviatedName + "<BR>";
+						lessonInnerHTML += "T:" + teacherId + "<BR>";
+						lessonInnerHTML += "L:" + locationId + "<BR>";
+						lessonInnerHTML += "" + classroomName;
+					} else {
+						lessonInnerHTML += abbreviatedName + "<BR>";
+						lessonInnerHTML += "S:" + schoolId + "<BR>";
+						lessonInnerHTML += "L:" + locationId + "<BR>";
+						lessonInnerHTML += "" + classroomName;
+					} 
+					newLesson.innerHTML = lessonInnerHTML;
+			
+					var mainHTMLBody = document.getElementById("body");
+					mainHTMLBody.appendChild(newLesson);
+				</SCRIPT>
+			{% endfor %}
+		{% endif %}
+		</DIV>
+	{% endif %}
+{% endblock %}

@@ -1,0 +1,49 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				6th February 2015
+	Purpose:			The home page of the application.
+-->
+
+{% extends "masterHeadingMenuFooterPage.html" %}
+
+{% block main_body_content %}
+	<DIV ALIGN = "CENTER">
+		<H2>Music School Manager Home Page</H2>
+		<P>
+		Welcome to the Music School Manager application!<BR><BR>
+		
+		{% if account_type == "Administrator": %}
+			This application allows you to easily manage the main aspects of your music school. You can manage your schools locations, classrooms, students,<BR>
+			teachers and timetables with complete control and ease of use. Primarily, this application focuses around the timetabling of lessons<BR>
+			to students that have been registered with your music school.<BR><BR>
+		
+			<U><I>Some of the key features of this application are as follows:</I></U><BR>
+			Expand your school by adding new locations, each of which can have their own individual set of classrooms.<BR>
+			All of your new students and teachers can be entered into our application and permanently stored for your convenience.<BR>
+			Any of your schools staff or students registered with this application can be edited or even removed completely.<BR>
+			Dynamic timetable display which automatically changes to suit your schools opening hours, should you decide to change them.<BR>
+			Simple and user-friendly timetable editor - just right click to add a lesson, edit an existing lesson or remove a lesson.<BR>
+			Re-scheduling of lessons also couldn't be easier - simply drag and drop the lesson into the required time-slot on the timetable display.<BR><BR>
+		
+			Further assistance with each screen can be found in the "Tutorial" panel, below. Here, various tips are displayed at random regarding the<BR>
+			screen you are currently visiting in the application. On this screen, for example, further descriptions of all of the options available to you via<BR>
+			the menu bar are displayed for you to view at your convenience. These descriptions list each functionality open to you in each menu bar option.<BR><BR> 
+			
+			For further information regarding this project and for project credits, please see the "About This Project" link<BR>
+			in the top right hand corner of the screen.
+		{% else: %}
+			This application has been designed to help make managing your music school lessons so much easier.<BR><BR>
+			<U><I>Change your account password:</I></U><BR>
+			Use the "Accounts" menu to change your account password to a new one - this is especially advised if your system adminstrator has just<BR>
+			set up your brand new account for the first time. All instructions as to how to change your password are provided in the Accounts screen.<BR><BR>
+			<U><I>View your timetable:</I></U><BR>
+			Use the "Timetables" menu to view your current music school timetable. All lessons across all of your schools will be shown in a single, easy<BR>
+			to read and easy to print timetable display. Should you wish to request any changes to your current timetable, then please contact your<BR>
+			schools administrator who can process any changes for you. Any changes made by your school will immediately be updated for you to print at<BR>
+			your complete convenience.<BR><BR>
+			Finally, may we say that we thank you very much for registering with us and we hope that you really enjoy using our application!
+		{% endif %}
+		</P>
+	</DIV> 
+{% endblock %}

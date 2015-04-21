@@ -1,0 +1,186 @@
+<!--
+	person Name:		Anthony Cox
+	person ID:			C00162988
+	Date:				8th April 2015
+	Purpose:			This page contains the commonly used methods and JQuery for the Person Account screens.
+-->
+
+{% extends "masterHeadingMenuFooterPage.html" %}
+
+{% block common_jquery %}
+<SCRIPT>
+$(document).ready(function(){ 
+	// Set the list of person names for the autocomplete feature of the search box
+	$("#searchEntry").autocomplete({
+				source: availablePersons,
+				select: function(event, ui) {
+					event.preventDefault();
+					$(this).val(ui.item.label);
+				}
+	}).autocomplete("widget").addClass("searchList");
+	
+	// Display the account reset options to the user
+	$("#resetAccount").click( function() {
+		$("#accountEditorOptions").css("height", "80%");
+		$("#removeThisAccount").finish().hide();
+		$("#noEditingSelected").finish().hide();
+		$("#resetThisAccount").finish().show();
+	});
+	
+	// Display the remove account option to the user
+	$("#removeAccount").click( function() {
+		$("#accountEditorOptions").css("height", "65%");
+		$("#resetThisAccount").finish().hide();
+		$("#noEditingSelected").finish().hide();
+		$("#removeThisAccount").finish().show();
+	});
+});
+
+// Create a new account for this person
+function createNewPersonAccount() {
+	$.ajax({ url: "/createNewPersonAccount", data: $('#newAccountForm').serialize(), type: 'POST', async: false, success: function(result) {
+						if(result == "OK") {
+							$("#accountCreated").finish().show();
+							setTimeout(function () {
+								$("#accountCreated").finish().hide();
+								location.reload();
+							}, 2000);
+						} else {
+							alert(result);
+						}
+					}});
+}
+
+// Reset an existing account for this person
+function resetPersonAccount() {
+	$.ajax({ url: "/resetPersonAccount", data: $('#resetAccountForm').serialize(), type: 'POST', async: false, success: function(result) {
+						if(result == "OK") {
+							$("#accountReset").finish().show();
+							setTimeout(function () {
+								$("#accountReset").finish().hide();
+								location.reload();
+							}, 2000);
+						} else {
+							alert(result);
+						}
+					}});
+}
+
+// Remove an account
+function removeSelectedAccount() {
+	$.ajax({ url: "/removeSelectedAccount", data: $('#resetAccountForm').serialize(), type: 'POST', async: false, success: function(result) {
+						if(result == "OK") {
+							$("#accountRemoved").finish().show();
+							setTimeout(function () {
+								$("#accountRemoved").finish().hide();
+								location.reload();
+							}, 2000);
+						} else {
+							alert(result);
+						}
+					}});
+}
+
+// Set all values relating to this person to default (empty) values
+function resetEditorWindowToDefault() {
+	document.getElementById("newAccountPersonId").value = "";
+	document.getElementById("newAccountPassword").value = "";
+	document.getElementById("newAccountConfirmPassword").value = "";
+	
+	document.getElementById("selectedPerson1").innerHTML = "";
+	
+	$("#createAccountWindow").finish().hide();
+	$("#accountEditorOptions").finish().hide();
+	$("#noEditingSelected").finish().hide();
+	$("#resetThisAccount").finish().hide();
+}
+
+// Initialise newly created DOM elements that populate the person editor window and show the editing options to the user
+function initialiseEditableData() {
+	$(".editableData").click( function() {
+		var element = $(this).next("input[type=hidden]");
+		var elementValue = $(element).attr("VALUE");
+		var individualAttr = elementValue.split(",");
+	
+		if(individualAttr[5] == "false") {
+			document.getElementById("newAccountPersonId").value = individualAttr[0];
+			document.getElementById("selectedPerson1").innerHTML = "" + individualAttr[1] + " " + individualAttr[2];
+			
+			$("#createAccountWindow").css("height", "50%");
+			$("#createAccountWindow").finish().show();
+		} else {
+			document.getElementById("resetAccountPersonId").value = individualAttr[0];
+			document.getElementById("selectedPerson2").innerHTML = "" + individualAttr[1] + " " + individualAttr[2];
+			
+			$("#accountEditorOptions").css("height", "60%");
+			$("#accountEditorOptions").finish().show();
+			$("#noEditingSelected").finish().show();
+		}
+	});
+}
+
+// Output the result of the search to the user
+function processSearchResult(searchResultString) {
+	// Replace all of the obsolete characters in the string
+	searchResultString = replaceAll(searchResultString, "[", "");
+	searchResultString = replaceAll(searchResultString, "]", "");
+	searchResultString = replaceAll(searchResultString, "\"", "");
+	
+	// Split the result into an array of individual attributes and output them below the search bar
+	var splitResult = searchResultString.split(",");
+	var index = 0;
+	var namesDisplay = "<BR><BR><TABLE CLASS = 'recordsDisplay'>";
+	namesDisplay += "<TR><TD CLASS = 'recordsHeading'>";
+	namesDisplay += "<DIV ALIGN = 'CENTER'><P CLASS = 'tableHeading'>Click an Account to View/Edit/Remove</P></DIV>";
+	namesDisplay += "</TD></TR>";
+	if(splitResult.length == 1 && splitResult[0] == "pageLoader") {
+		namesDisplay += "<TR>";
+		namesDisplay += "<TD CLASS = 'recordsHeading'>";
+		namesDisplay += "<P>Please search for a person name.<BR>Matching names will then appear here.</P>";
+		namesDisplay += "</TD>";
+		namesDisplay += "</TR>";
+	} else if(splitResult.length == 1) {
+		namesDisplay += "<TR>";
+		namesDisplay += "<TD CLASS = 'recordsHeading'>";
+		namesDisplay += "<DIV ALIGN = 'CENTER'>";
+		namesDisplay += "<P>No names match your search criteria.<BR>Please try another name.</P>";
+		namesDisplay += "</DIV>";
+		namesDisplay += "</TD>";
+		namesDisplay += "</TR>";
+	} else {
+		while(index < splitResult.length) {
+			namesDisplay += "<TR>";
+			namesDisplay += "<TD CLASS = 'recordsHeading'>";
+			namesDisplay += "<DIV ALIGN = 'CENTER'>";
+			namesDisplay += "<P CLASS = 'editableData'>" + splitResult[index].trim() + ": " + splitResult[index + 1].trim() + " ";
+			namesDisplay += splitResult[index + 2].trim() + "</P>";
+			namesDisplay += "<INPUT TYPE = 'HIDDEN' ID = 'person" + index + "' NAME = 'person" + index + "' ";
+			namesDisplay += "VALUE = '" + splitResult[index].trim() + "," + splitResult[index + 1].trim() + "," + splitResult[index + 2].trim() + ","; 
+			namesDisplay += splitResult[index + 3].trim() + "," + splitResult[index + 4].trim() + "," + splitResult[index + 5].trim() + "'></INPUT>";
+			namesDisplay += "</DIV>";
+			namesDisplay += "</TD>";
+			namesDisplay += "</TR>";
+			index += 6;
+		}
+	}
+	namesDisplay += "</TABLE><BR>";
+	document.getElementById("searchResults").innerHTML = namesDisplay;
+	initialiseEditableData();
+}
+</SCRIPT>
+{% endblock %}
+
+{% block common_javascript %}
+<SCRIPT>
+// Global Variables
+var availablePersons = [];
+
+// Replace all of the characters specified with their specified replacements in the provided string
+function replaceAll(theString, theCharacter, theReplacement) {
+	while(theString.indexOf(theCharacter) >= 0) {
+		theString = theString.replace(theCharacter, theReplacement);
+	}
+	return theString;
+}
+</SCRIPT>
+{% endblock %}

@@ -1,0 +1,309 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				8th March 2015
+	Purpose:			This page displays the view/edit classrooms screen to the user. The user can select any classroom
+						that they wish and can edit any of the details associated with that classroom. The edited details
+						are stored if the user clicks "submit" or cancelled if they cancel and exit. Classrooms can also be
+						removed via this screen.
+-->
+
+{% extends "masterHeadingMenuFooterPage.html" %}
+
+{% block common_jquery %}
+<SCRIPT>
+$(document).ready(function(){ 
+	// Display the lesson editing options to the user
+	$("#editClassroom").click( function() {
+		$("#mainEditorWindow").css("height", "75%");
+		$("#removeThisClassroom").finish().hide();
+		$("#noEditingSelected").finish().hide();
+		$("#editThisClassroom").finish().show();
+	});
+	
+	// Display the remove lesson option to the user
+	$("#removeClassroom").click( function() {
+		$("#mainEditorWindow").css("height", "70%");
+		$("#editThisClassroom").finish().hide();
+		$("#noEditingSelected").finish().hide();
+		$("#removeThisClassroom").finish().show();
+	});
+	
+	// Hide any of the context menus if the user clicks away from it
+	$(document).bind("mousedown", function (event) {
+		if (!$(event.target).parents("#mainEditorWindow").length > 0) {
+			resetEditorWindowToDefault();
+		}
+	});
+});
+
+// Store the edited lesson in the database
+function storeEditedClassroom() {
+	$.ajax({ url: "/submitEditedClassroom", data: $('#editedClassroom').serialize(), type: 'POST', async: false, success: function(result) {
+						if(result == "OK") {
+							$("#classroomUpdated").finish().show();
+							setTimeout(function () {
+								$("#classroomUpdated").finish().hide();
+								location.reload();
+							}, 2000);
+						} else {
+							alert(result);
+						}
+					}});
+}
+
+// Remove the selected lesson from the database
+function removeSelectedClassroom() {
+	$.ajax({ url: "/removeClassroom", data: $('#editedClassroom').serialize(), type: 'POST', async: false, success: function(result) {
+						if(result == "OK") {
+							$("#classroomRemoved").finish().show();
+							setTimeout(function () {
+								$("#classroomRemoved").finish().hide();
+								location.reload();
+							}, 2000);
+						} else {
+							alert("There was a problem processing this classroom removal request. Please try again later.");
+						}
+					}});
+}
+
+// Retrieve the list of classrooms associated with the provided location id
+function loadClassroomsList() {
+	$.ajax({ url: "/retrieveClassroomsList", data: $('#locationSelect').serialize(), type: 'POST', async: false, success: function(result) {
+						processSearchResult(result);
+					}});
+}
+</SCRIPT>
+{% endblock %}
+
+{% block common_javascript %}
+<SCRIPT>
+// Initialise newly created DOM elements that populate the person editor window and show the editing options to the user
+function initialiseEditableData() {
+	$(".editableData").click( function() {
+		var element = $(this).next("input[type=hidden]");
+		var elementValue = $(element).attr("VALUE");
+		var individualAttr = elementValue.split(",");
+		document.getElementById("editableLocationId").value = individualAttr[0];
+		document.getElementById("originalLocationId").value = individualAttr[0];
+		document.getElementById("classroomId").value = individualAttr[1];
+		document.getElementById("roomName").value = individualAttr[2];
+		document.getElementById("selectedClassroom").innerHTML = individualAttr[2];
+		
+		$("#mainEditorWindow").css("height", "65%");
+		$("#mainEditorWindow").finish().show();
+		$("#noEditingSelected").finish().show();
+	});
+}
+
+// Output the result of the search to the user
+function processSearchResult(searchResultString) {
+	// Replace all of the obsolete characters in the string
+	searchResultString = replaceAll(searchResultString, "[", "");
+	searchResultString = replaceAll(searchResultString, "]", "");
+	searchResultString = replaceAll(searchResultString, "\"", "");
+	
+	// Split the result into an array of individual attributes and output them below the search bar
+	var splitResult = searchResultString.split(",");
+	var index = 0;
+	var namesDisplay = "<BR><TABLE CLASS = 'recordsDisplay'>";
+	namesDisplay += "<TR><TD CLASS = 'recordsHeading'>";
+	namesDisplay += "<DIV ALIGN = 'CENTER'><P CLASS = 'tableHeading'>Click a Room to View/Edit/Remove</P></DIV>";
+	namesDisplay += "</TD></TR>";
+	if(splitResult.length == 1 && splitResult[0] == "pageLoader") {
+		namesDisplay += "<TR>";
+		namesDisplay += "<TD CLASS = 'recordsHeading'>";
+		namesDisplay += "<P>After selecting a location, simply<BR>click 'Select Location' to list this locations classrooms.</P>";
+		namesDisplay += "</TD>";
+		namesDisplay += "</TR>";
+	} else if(splitResult.length == 1) {
+		namesDisplay += "<TR>";
+		namesDisplay += "<TD CLASS = 'recordsHeading'>";
+		namesDisplay += "<DIV ALIGN = 'CENTER'>";
+		namesDisplay += "<P>No rooms have been added to this location.</P>";
+		namesDisplay += "</DIV>";
+		namesDisplay += "</TD>";
+		namesDisplay += "</TR>";
+	} else {
+		while(index < splitResult.length) {
+			namesDisplay += "<TR>";
+			namesDisplay += "<TD CLASS = 'recordsHeading'>";
+			namesDisplay += "<DIV ALIGN = 'CENTER'>";
+			namesDisplay += "<P CLASS = 'editableData'>" + splitResult[index + 2].trim() + "</P>";
+			namesDisplay += "<INPUT TYPE = 'HIDDEN' ID = 'room" + index + "' NAME = 'room" + index + "' ";
+			namesDisplay += "VALUE = '" + splitResult[index].trim() + "," + splitResult[index + 1].trim() + "," + splitResult[index + 2].trim() + "'></INPUT>";
+			namesDisplay += "</DIV>";
+			namesDisplay += "</TD>";
+			namesDisplay += "</TR>";
+			index += 3;
+		}
+	}
+	namesDisplay += "</TABLE><BR>";
+	document.getElementById("classroomsList").innerHTML = namesDisplay;
+	initialiseEditableData();
+}
+
+// Replace all of the characters specified with their specified replacements in the provided string
+function replaceAll(theString, theCharacter, theReplacement) {
+	while(theString.indexOf(theCharacter) >= 0) {
+		theString = theString.replace(theCharacter, theReplacement);
+	}
+	return theString;
+}
+
+// Set the default appearance options for the classroom selected
+function resetEditorWindowToDefault() {
+	document.getElementById("classroomId").value = "";
+	document.getElementById("originalLocationId").value = "";
+	document.getElementById("roomName").value = "";
+	document.getElementById("selectedClassroom").innerHTML = "";
+	
+	$("#editThisClassroom").finish().hide();
+	$("#removeThisClassroom").finish().hide();
+	$("#mainEditorWindow").finish().hide();
+	$("#noEditingSelected").finish().hide();
+}
+
+// Reset the classrooms list to an empty DIV
+function resetClassroomsList() {
+	processSearchResult("pageLoader");
+}
+</SCRIPT>
+{% endblock %}
+
+{% block main_body_content %}
+	<DIV ALIGN = "CENTER">
+		<H2>View/Edit Your Classrooms</H2>
+		<P>Choose a location from the search box below and click the "Select" button. The list of classrooms associated
+		<BR>with this location will be displayed. Select any of the rooms listed to edit the details associated with that room.
+		<BR>These options include viewing and editing the rooms location and name and an option for removing the room entirely.</P>
+		<FORM ID = "locationSelect" NAME = "locationSelect">
+			<TABLE CLASS = "detailsEntry">
+				<TR>
+					<TD>
+						<DIV ALIGN = "CENTER">
+							<P CLASS = 'tableHeading'>Please Select a Location</P>
+							<SELECT ID = "locationId" NAME = "locationId" CLASS = "colourSelect" ONCHANGE = "resetClassroomsList();"
+									TITLE = "Select a location from this list. The list of classrooms associated with this location will be listed below.">
+							<OPTION SELECTED HIDDEN VALUE = "not set">Please Select a Location</OPTION>
+							{% for index in range(0, list_of_locations.__len__()): %}
+								<OPTION VALUE = "{{ list_of_locations[index].locationId }}">{{ list_of_locations[index].locationName }}</OPTION>
+							{% endfor %}
+							</SELECT>
+						</DIV>
+					</TD>
+				</TR>
+			<TABLE>
+			<BR>
+			<INPUT TYPE = "BUTTON" ONCLICK = "loadClassroomsList();" VALUE = "&nbsp;&nbsp;Select Location&nbsp;&nbsp;"></INPUT>
+		</FORM>
+		<BR><BR>
+		<DIV ID = "classroomsList" NAME = "classroomsList"></DIV>
+		<SCRIPT>
+			processSearchResult("pageLoader");
+		</SCRIPT>
+	</DIV>
+	<BR>
+{% endblock %}
+
+{% block additional_windows %}
+	<!-- This DIV draws the editing options for any selected classroom -->
+	<DIV ID = "mainEditorWindow" NAME = "mainEditorWindow" CLASS = "editorWindow" HIDDEN>
+		<H2>Classroom Editor</H2>
+		<H3 ID = "selectedClassroom" NAME = "selectedClassroom" CLASS = "editorSelectedRecord"></H3>
+		<P>Use the buttons below to select between the
+		<BR>classroom editor options and the classroom removal option.</P>
+		<BR>
+		<TABLE CLASS = "detailsEntry">
+			<TR>
+				<TD CLASS = "editorButtonDisplay">
+					<BUTTON TYPE = "BUTTON" ID = "editClassroom" NAME = "editClassroom" CLASS = "editorButton">View/Edit<BR>Room</BUTTON>
+				</TD>
+				<TD CLASS = "editorButtonDisplay">
+					<BUTTON TYPE = "BUTTON" ID = "removeClassroom" NAME = "removeClassroom" CLASS = "editorButton">Remove<BR>Room</BUTTON>
+				</TD>
+			</TR>
+		</TABLE>
+		<BR>
+		
+		<!-- Cancel Editor Screen Options -->
+		<DIV ID = "noEditingSelected" NAME = "noEditingSelected" CLASS = "innerEditingWindow" HIDDEN>
+			<BR>
+			<P>If you wish to exit from the classroom editor, click outside
+			<BR>of the classroom editor window or use the button below.</P>
+			<INPUT TYPE = "BUTTON" TITLE = "Close this window." ONCLICK = "resetEditorWindowToDefault();" VALUE = "Cancel Classroom Editor"></INPUT>
+		</DIV>
+		
+		<!-- Classroom Editing Options -->
+		<DIV ID = "editThisClassroom" NAME = "editThisClassroom" CLASS = "innerEditingWindow" HIDDEN>
+			<FORM ID = "editedClassroom" NAME = "editedClassroom">
+				<BR>
+				<P>Make changes to your classroom details in the fields below
+				<BR>and then submit your changes to save them.</P>
+				
+				<!-- Hidden input elements store data which the user cannot change -->
+				<INPUT TYPE = "HIDDEN" ID = "classroomId" NAME = "classroomId"></INPUT>
+				<INPUT TYPE = "HIDDEN" ID = "originalLocationId" NAME = "originalLocationId"></INPUT>
+				
+				<!-- Table to display editing options -->
+				<TABLE CLASS = "detailsEntry">
+					<TR>
+						<TD CLASS = "detailsHeading">
+							Location:&nbsp;
+						</TD>
+						<TD CLASS = "detailsEntry">
+							&nbsp;<SELECT ID = "editableLocationId" NAME = "editableLocationId" CLASS = "innerWindowLocationSelect"
+										TITLE = "Select a location that you wish to link this classroom to.">
+								<OPTION SELECTED HIDDEN VALUE = "not set">Please Select a Location</OPTION>
+								{% for index in range(0, list_of_locations.__len__()): %}
+									<OPTION VALUE = "{{ list_of_locations[index].locationId }}">{{ list_of_locations[index].locationName }}</OPTION>
+								{% endfor %}
+						</TD>
+					</TR>
+					<TR>
+						<TD CLASS = "detailsHeading">
+							Room Name:&nbsp;
+						</TD>
+						<TD CLASS = "detailsEntry">
+							&nbsp;<INPUT TYPE = "TEXT" ID = "roomName" NAME = "roomName" CLASS = "innerWindowEntry"
+									TITLE = "Enter the room name (of max 10 characters) that you wish to change your classroom name to." AUTOFOCUS></INPUT>
+						</TD>
+					</TR>
+				</TABLE>
+				<BR>
+				<INPUT TYPE = "BUTTON" TITLE = "Submit the edited student group to the database for storage."
+					ONCLICK = "storeEditedClassroom();" VALUE = "Submit Changes"></INPUT>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<INPUT TYPE = "BUTTON" TITLE = "Close this window and cancel all changes." ONCLICK = "resetEditorWindowToDefault();"
+					VALUE = "Cancel all Changes"></INPUT>
+			</FORM>
+		</DIV>
+		
+		<!-- Classroom Removal Option -->
+		<DIV ID = "removeThisClassroom" NAME = "removeThisClassroom" CLASS = "innerEditingWindow" HIDDEN>
+			<BR>
+			<P>Are you sure that you wish to remove this classroom
+			<BR>from the system? This classroom can no longer be
+			<BR>scheduled on any timetables after removal.</P>
+			<BR>
+			<INPUT TYPE = "BUTTON" TITLE = "Remove this classroom." ONCLICK = "removeSelectedClassroom();" VALUE = "Remove this Classroom"></INPUT>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<INPUT TYPE = "BUTTON" TITLE = "Close this window and cancel all changes." ONCLICK = "resetEditorWindowToDefault();"
+				VALUE = "Cancel all Changes"></INPUT>
+		</DIV>
+	</DIV>
+{% endblock %}
+
+{% block confirmation_windows %}
+<DIV ID = "classroomUpdated" CLASS = "confirmationWindow" HIDDEN>
+	<BR>
+	<BR>
+	Classroom Details Updated Successfully
+</DIV>
+
+<DIV ID = "classroomRemoved" CLASS = "confirmationWindow" HIDDEN>
+	<BR>
+	<BR>
+	Classroom Removed Successfully
+</DIV>
+{% endblock %}

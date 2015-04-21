@@ -1,0 +1,237 @@
+<!--
+	teacher Name:		Anthony Cox
+	teacher ID:			C00162988
+	Date:				7th March 2015
+	Purpose:			This page displays the view/edit teachers screen to the user. The user can select any teacher
+						that they wish and can edit any of the details associated with those teachers. The edited details
+						are stored if the user clicks "submit" or cancelled if they cancel and exit. Teachers can also be
+						removed via this screen.
+-->
+
+{% extends "commonPersonManagement.html" %}
+
+{% block additional_jquery %}
+<SCRIPT>
+// Search for the selected teacher name
+function searchForTeacher() {
+	$.ajax({ url: "/searchForTeacher", data: $('#searchForm').serialize(), type: 'POST', async: false, success: function(result) {
+						processSearchResult(result);
+					}});
+}
+
+// Store the edited teacher in the database
+function storeEditedTeacher() {
+	$.ajax({ url: "/submitEditedTeacher", data: $('#teacherEdit').serialize(), type: 'POST', async: false, success: function(result) {
+						if(result == "OK") {
+							$("#teacherUpdated").finish().show();
+							setTimeout(function () {
+								$("#teacherUpdated").finish().hide();
+								location.reload();
+							}, 2000);
+						} else {
+							alert(result);
+						}
+					}});
+}
+
+// Remove the selected lesson from the database
+function removeSelectedTeacher() {
+	$.ajax({ url: "/removeTeacher", data: $('#teacherEdit').serialize(), type: 'POST', async: false, success: function(result) {
+						if(result == "OK") {
+							$("#teacherRemoved").finish().show();
+							setTimeout(function () {
+								$("#teacherRemoved").finish().hide();
+								location.reload();
+							}, 2000);
+						} else {
+							alert("There was a problem processing this teacher removal request. Please try again later.");
+						}
+					}});
+}
+</SCRIPT>
+{% endblock %}
+
+{% block main_body_content %}
+	{% for index in range(0, list_of_persons.__len__()): %}
+		<SCRIPT>
+			availablePersons.push({ value: "", label: "{{list_of_persons[index].firstName}} {{list_of_persons[index].surname}}" });
+		</SCRIPT>
+	{% endfor %}
+	<DIV ALIGN = "CENTER">
+		<H2>View/Edit Your Teachers</H2>
+		<P>Enter the teacher name you wish to edit in the search box below.
+		<BR>To help you, a number of possible options based on your teacher name entry will
+		<BR>also appear as you type. When you have finished entering your teacher name, click
+		<BR>on the "Search" button to display all teachers matching this search.</P>
+		<BR>
+		<FORM ID = "searchForm" NAME = "searchForm">
+			<INPUT TYPE = "TEXT" ID = "searchEntry" NAME = "searchEntry" CLASS = "searchInput" AUTOFOCUS></INPUT>&nbsp;
+			<INPUT TYPE = "BUTTON" CLASS = "editorButton2" ONCLICK = "searchForTeacher();" VALUE = "&nbsp;&nbsp;Search&nbsp;&nbsp;"></INPUT>
+		</FORM>
+		<DIV ID = "searchResults" NAME = "searchResults"></DIV>
+		<SCRIPT>
+			processSearchResult("pageLoader");
+		</SCRIPT>
+	</DIV>
+{% endblock %}
+
+{% block additional_windows %}
+	<!-- This DIV draws the editing options for any selected teacher -->
+	<DIV ID = "mainEditorWindow" NAME = "mainEditorWindow" CLASS = "editorWindow" HIDDEN>
+		<H2>Teacher Editor</H2>
+		<H3 ID = "selectedPerson" NAME = "selectedPerson" CLASS = "editorSelectedRecord"></H3>
+		<P>Use the buttons below to select between
+		<BR>the teacher editor options and the teacher removal option.</P>
+		<BR>
+		<TABLE CLASS = "detailsEntry">
+			<TR>
+				<TD CLASS = "editorButtonDisplay">
+					<BUTTON TYPE = "BUTTON" ID = "editPerson" NAME = "editPerson" CLASS = "editorButton">View/Edit<BR>Teacher</BUTTON>
+				</TD>
+				<TD CLASS = "editorButtonDisplay">
+					<BUTTON TYPE = "BUTTON" ID = "removePerson" NAME = "removePerson" CLASS = "editorButton">Remove<BR>Teacher</BUTTON>
+				</TD>
+			</TR>
+		</TABLE>
+		
+		<!-- Cancel Editor Screen Options -->
+		<DIV ID = "noEditingSelected" NAME = "noEditingSelected" CLASS = "innerEditingWindow" HIDDEN>
+			<BR>
+			<P>If you wish to exit from the teacher editor, click outside
+			<BR>of the teacher editor window or use the button below.</P>
+			<INPUT TYPE = "BUTTON" TITLE = "Close this window." ONCLICK = "resetEditorWindowToDefault();" VALUE = "Cancel Teacher Editor"></INPUT>
+		</DIV>
+		
+		<!-- Teacher Editing Options -->
+		<DIV ID = "editThisPerson" NAME = "editThisPerson" CLASS = "innerEditingWindow" HIDDEN>
+			<FORM ID = "teacherEdit" NAME = "teacherEdit">
+				<BR>
+				<P>Make changes to your teachers details in the fields below and
+				<BR>then submit your changes to save them.</P>
+				
+				<!-- Hidden input elements store data which the user cannot change -->
+				<INPUT TYPE = "HIDDEN" ID = "personId" NAME = "personId"></INPUT>
+				<INPUT TYPE = "HIDDEN" ID = "schoolId" NAME = "schoolId" VALUE = "{{ current_school_id }}"></INPUT>
+				<INPUT TYPE = "HIDDEN" ID = "addressId" NAME = "addressId"></INPUT>
+				<INPUT TYPE = "HIDDEN" ID = "thisPersonId" NAME = "thisPersonId"></INPUT>
+				
+				<!-- Table to display personal details editing options -->
+				<TABLE CLASS = "detailsEntry">
+					<TR>
+						<TD CLASS = "detailsHeading">
+							First Name:&nbsp;
+						</TD>
+						<TD CLASS = "detailsEntry">
+							&nbsp;<INPUT TYPE = "TEXT" ID = "firstName" NAME = "firstName"
+								TITLE = "Edit the first name of this teacher." AUTOFOCUS></INPUT>
+						</TD>
+					</TR>
+					<TR>
+						<TD CLASS = "detailsHeading">
+							Surname:&nbsp;
+						</TD>
+						<TD CLASS = "detailsEntry">
+							&nbsp;<INPUT TYPE = "TEXT" ID = "surname" NAME = "surname"
+								TITLE = "Edit the surname of this teacher." AUTOFOCUS></INPUT>
+						</TD>
+					</TR>
+					<TR>
+						<TD CLASS = "detailsHeading">
+							Date of Birth:&nbsp;
+						</TD>
+						<TD CLASS = "detailsEntry">
+							&nbsp;<INPUT TYPE = "TEXT" ID = "dateOfBirth" NAME = "dateOfBirth"
+								TITLE = "Edit the teachers date of birth in the format DD/MM/YY."></INPUT>
+						</TD>
+					</TR>
+					<TR>
+						<TD CLASS = "detailsHeading">
+							Street Name 1:&nbsp;
+						</TD>
+						<TD CLASS = "detailsEntry">
+							&nbsp;<INPUT TYPE = "TEXT" ID = "streetName1" NAME = "streetName1"
+								TITLE = "Edit the street name for this teacher."></INPUT>
+						</TD>
+					</TR>
+					<TR>
+						<TD CLASS = "detailsHeading">
+							Street Name 2:&nbsp;
+						</TD>
+						<TD CLASS = "detailsEntry">
+							&nbsp;<INPUT TYPE = "TEXT" ID = "streetName2" NAME = "streetName2"
+								TITLE = "Edit the street name for this teacher."></INPUT>
+						</TD>
+					</TR>
+					<TR>
+						<TD CLASS = "detailsHeading">
+							Town or City:&nbsp;
+						</TD>
+						<TD CLASS = "detailsEntry">
+							&nbsp;<INPUT TYPE = "TEXT" ID = "townOrCity" NAME = "townOrCity"
+								TITLE = "Edit the town or city in which this teacher is based."></INPUT>
+						</TD>
+					</TR>
+					<TR>
+						<TD CLASS = "detailsHeading">
+							County:&nbsp;
+						</TD>
+						<TD CLASS = "detailsEntry">
+							&nbsp;<INPUT TYPE = "TEXT" ID = "county" NAME = "county"
+								TITLE = "Edit the county in which this teacher is based."></INPUT>
+						</TD>
+					</TR>
+					<TR>
+						<TD CLASS = "detailsHeading">
+							Phone Number:&nbsp;
+						</TD>
+						<TD CLASS = "detailsEntry">
+							&nbsp;<INPUT TYPE = "TEXT" ID = "phoneNumber" NAME = "phoneNumber"
+								TITLE = "Edit the phone number for this teacher."></INPUT>
+						</TD>
+					</TR>
+					<TR>
+						<TD CLASS = "detailsHeading">
+							Email Address:&nbsp;
+						</TD>
+						<TD CLASS = "detailsEntry">
+							&nbsp;<INPUT TYPE = "TEXT" ID = "emailAddress" NAME = "emailAddress"
+								TITLE = "Enter the edited email address for this teacher."></INPUT>
+						</TD>
+					</TR>
+				</TABLE>
+				<BR>
+				<INPUT TYPE = "BUTTON" TITLE = "Submit the edited teacher details." ONCLICK = "storeEditedTeacher();" VALUE = "Submit Changes"></INPUT>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<INPUT TYPE = "BUTTON" TITLE = "Close this window and cancel all changes." 
+					ONCLICK = "resetEditorWindowToDefault();" VALUE = "Cancel all Changes"></INPUT>
+			</FORM>
+		</DIV>
+		
+		<!-- Teacher Removal Option -->
+		<DIV ID = "removeThisPerson" NAME = "removeThisPerson" CLASS = "innerEditingWindow"  HIDDEN>
+			<BR>
+			<P>Are you sure that you wish to remove this teacher
+			<BR>from the system? This teacher will no longer be
+			<BR>part of your school or teacher groups after removal.</P>
+			<BR>
+			<INPUT TYPE = "BUTTON" TITLE = "Remove this teacher." ONCLICK = "removeSelectedTeacher();" VALUE = "Remove this Teacher"></INPUT>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<INPUT TYPE = "BUTTON" TITLE = "Close this window and cancel all changes." ONCLICK = "resetEditorWindowToDefault();"
+				VALUE = "Cancel all Changes"></INPUT>
+		</DIV>
+	</DIV>
+{% endblock %}
+
+{% block confirmation_windows %}
+<DIV ID = "teacherUpdated" CLASS = "confirmationWindow" HIDDEN>
+	<BR>
+	<BR>
+	Teacher Details Updated Successfully
+</DIV>
+
+<DIV ID = "teacherRemoved" CLASS = "confirmationWindow" HIDDEN>
+	<BR>
+	<BR>
+	Teacher Removed Successfully
+</DIV>
+{% endblock %}

@@ -1,0 +1,38 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				24th March 2015
+	Purpose:			Display an error message to the user informing them that they have not previously logged into the application.
+-->
+
+{% extends "masterHeadingMenuFooterPage.html" %}
+
+{% block common_javascript %}
+<SCRIPT>
+function returnToLoginPage() {
+	window.location.replace("/")
+}
+</SCRIPT>
+{% endblock %}
+
+{% block main_body_content %}
+	<DIV ALIGN = "CENTER">
+		<H2>Access Denied</H2>
+		<P>
+		We are sorry but it appears that there has been an error with displaying this page.<BR><BR>
+		<U><I>This error is caused by one of the following two reasons:</U></I>
+		<BR>1: You have not logged in to the application.
+		<BR>2: You do not have sufficient rights to access this page.
+		<BR><BR>Please note that only registered administrator accounts can access this page.
+		<BR><BR>If you need to register for a new account then you can follow the new account registration link<BR>
+		on the login page. Also note that only schools can register for a new account - if you are either a<BR>
+		teacher or student wishing to gain access to the application, then you must contact your school<BR>
+		administrator. They can then set up a new account for you.<BR><BR>
+		If, however, you are having a persistent error with your login credentials, please contact support and report the issue.
+		</P>
+		<BR>
+		<INPUT TYPE = "BUTTON" ONCLICK = "returnToLoginPage()" VALUE = "Return to Login"></INPUT>
+		<BR>
+		<BR>
+	</DIV>
+{% endblock %}

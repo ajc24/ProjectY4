@@ -1,0 +1,137 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				13th February 2015
+	Purpose:			This page displays a page to the user which allows them to edit their school details.
+-->
+
+{% extends "masterHeadingMenuFooterPage.html" %}
+
+{% block common_jquery %}
+<SCRIPT>
+// Store the edited school details
+function storeEditedDetails() {
+	$.ajax({ url: "/updateSchoolDetails", data: $('FORM').serialize(), type: 'POST', async: false, success: function(result) {
+						if(result == "OK") {
+							$(".confirmationWindow").finish().show();
+							setTimeout(function () {
+								$(".confirmationWindow").finish().hide();
+								location.reload();
+							}, 2000);
+						} else {
+							alert(result);
+						}
+					}});
+}
+</SCRIPT>
+{% endblock %}
+
+{% block common_javascript %}
+<SCRIPT>
+
+</SCRIPT>
+{% endblock %}
+
+{% block main_body_content %}
+	<DIV ALIGN = "CENTER">
+		<H2>View/Edit Your School Details</H2>
+		<P>Your school details are listed below. Please make any required changes to any of the fields.</P>
+		<BR>
+		<FORM>			
+			<!-- Hidden fields store data which cannot be edited by the user -->
+			<INPUT TYPE = "HIDDEN" ID = "schoolId" NAME = "schoolId" VALUE = "{{ school.schoolId }}"></INPUT>
+			<INPUT TYPE = "HIDDEN" ID = "addressId" NAME = "addressId" VALUE = "{{ school.addressId }}"></INPUT>
+			<INPUT TYPE = "HIDDEN" ID = "oldSchoolName" NAME = "oldSchoolName" VALUE = "{{ school.schoolName }}"></INPUT>
+			
+			<!-- Draw the table of editable fields for the user -->
+			<TABLE CLASS = "detailsEntry">
+				<TR>
+					<TD CLASS = "detailsHeading">
+						School Name:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "schoolName" NAME = "schoolName" AUTOFOCUS
+							TITLE = "Edit your schools name here." CLASS = "schoolDetails" VALUE = "{{ school.schoolName }}"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Street Name 1:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "streetName1" NAME = "streetName1"
+							TITLE = "Change the street name for your school." CLASS = "schoolDetails" VALUE = "{{ school.streetName1 }}"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Street Name 2:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "streetName2" NAME = "streetName2"
+							TITLE = "Change the street name for your school." CLASS = "schoolDetails" VALUE = "{{ school.streetName2 }}"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Town or City:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "townOrCity" NAME = "townOrCity"
+							TITLE = "Change the town or city in which your school is based." CLASS = "schoolDetails" VALUE = "{{ school.townOrCity }}"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						County:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "county" NAME = "county"
+							TITLE = "Change the county in which your school is based." CLASS = "schoolDetails" VALUE = "{{ school.county }}"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Phone Number:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "phoneNumber" NAME = "phoneNumber"
+							TITLE = "Edit your schools phone number." CLASS = "schoolDetails" VALUE = "{{ school.phoneNumber }}"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Email Address:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "emailAddress" NAME = "emailAddress"
+							TITLE = "Edit your schools email address. Emails must be in the format name@provider.domain" CLASS = "schoolDetails" 
+							VALUE = "{{ school.emailAddress }}"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Confirm Email Address:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "confirmEmailAddress" NAME = "confirmEmailAddress"
+							TITLE = "Confirm your schools email address. Emails must be in the format name@provider.domain" CLASS = "schoolDetails" 
+							VALUE = "{{ school.emailAddress }}"></INPUT>
+					</TD>
+				</TR>
+			</TABLE>
+			<BR>
+			<INPUT TYPE = "BUTTON" TITLE = "Permanently save these details for your school." 
+				ONCLICK = "storeEditedDetails();" VALUE = "Save School Details"></INPUT>
+		</FORM>
+	</DIV>
+	<BR>
+{% endblock %}
+
+{% block confirmation_windows %}
+<DIV CLASS = "confirmationWindow" HIDDEN>
+<BR>
+<BR>
+School Details Updated Successfully
+</DIV>
+{% endblock %}

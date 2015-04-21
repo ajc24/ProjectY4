@@ -1,0 +1,95 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				6th April 2015
+	Purpose:			This page allows the user to edit their personal/school accounts login details - primarily used password changes.
+-->
+
+{% extends "masterHeadingMenuFooterPage.html" %}
+
+{% block additional_jquery %}
+<SCRIPT>
+// Store the edited student in the database
+function submitNewPasswordDetails() {
+	$.ajax({ url: "/submitNewAccountPassword", data: $('FORM').serialize(), type: 'POST', async: false, success: function(result) {
+						if(result == "OK") {
+							$(".confirmationWindow").finish().show();
+							setTimeout(function () {
+								$(".confirmationWindow").finish().hide();
+								document.getElementById("currentPassword").value = "";
+								document.getElementById("newPassword").value = "";
+								document.getElementById("confirmPassword").value = "";
+							}, 2000);
+						} else {
+							alert(result);
+						}
+					}});
+}
+</SCRIPT>
+{% endblock %}
+
+{% block main_body_content %}
+	<DIV ALIGN = "CENTER">
+		<H2>Change Your Account Password</H2>
+		
+		{% if account_type == "Administrator": %}
+			<P>Use the input fields below to change your school account password. If you wish
+			<BR>to change your schools email address, this can be done via the school management
+			<BR>menu. Once you make changes to your password, the new credentials are then used at 
+			<BR>login time on an immediate basis.</P>
+		{% else: %}
+			<P>Use the input fields below to change your personal account password. If you wish
+			<BR>to have your email address changed, you must contact your system administrator and
+			<BR>request for them to change your email address. Once you make changes to your password,
+			<BR>the new credentials are then used at login time on an immediate basis.</P>
+		{% endif %}
+		<BR>
+		<FORM>
+			<!-- Hidden fields for storing data not editable by the user -->
+			<INPUT TYPE = "HIDDEN" ID = "schoolId" NAME = "schoolId" VALUE = "{{ current_school_id }}"></INPUT>
+			<INPUT TYPE = "HIDDEN" ID = "accountType" NAME = "accountType" VALUE = "{{ account_type }}"></INPUT>
+			
+			<!-- Table for displaying all current school account settings -->
+			<TABLE CLASS = "detailsEntry">
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Enter Your Current Password:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "PASSWORD" TITLE = "Enter the current password you are using to access your account."
+								ID = "currentPassword" NAME = "currentPassword" CLASS = "schoolDetails"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Enter Your New Password:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "PASSWORD" TITLE = "Enter the new password you wish to have associated with your account. A password must contain at least one uppercase character, one lowercase character and a number between 0 and 9."
+								ID = "newPassword" NAME = "newPassword" CLASS = "schoolDetails"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Confirm Your New Password:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "PASSWORD" TITLE = "Please confirm your new password."
+								ID = "confirmPassword" NAME = "confirmPassword" CLASS = "schoolDetails"></INPUT>
+					</TD>
+				</TR>
+			</TABLE>
+			<BR>
+			<INPUT TYPE = "BUTTON" ONCLICK = "submitNewPasswordDetails();" VALUE = "Submit Account Password Changes"></INPUT>
+		</FORM>
+	</DIV>
+	<BR>
+{% endblock %}
+
+{% block confirmation_windows %}
+<DIV CLASS = "confirmationWindow" HIDDEN>
+<BR>
+<BR>
+Password Updated Successfully
+</DIV>
+{% endblock %}

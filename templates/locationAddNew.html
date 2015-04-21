@@ -1,0 +1,108 @@
+<!--
+	Student Name:		Anthony Cox
+	Student ID:			C00162988
+	Date:				18th February 2015
+	Purpose:			This page displays the add new location screen to the user. The user enters the
+						new location details and submits it. It is then stored in the database.
+-->
+
+{% extends "masterHeadingMenuFooterPage.html" %}
+
+{% block common_jquery %}
+<SCRIPT>
+// Store the new location details
+function addNewLocation() {
+	$.ajax({ url: "/submitNewLocation", data: $('FORM').serialize(), type: 'POST', async: false, success: function(result) {
+						if(result == "OK") {
+							$("#newLocationAdded").finish().show();
+							setTimeout(function () {
+								document.getElementById("locationName").value = "";
+								document.getElementById("streetName1").value = "";
+								document.getElementById("streetName2").value = "";
+								document.getElementById("townOrCity").value = "";
+								document.getElementById("county").value = "";
+								$("#newLocationAdded").finish().hide();
+							}, 2000);
+						} else {
+							alert(result);
+						}
+					}});
+}
+</SCRIPT>
+{% endblock %}
+
+{% block main_body_content %}
+	<DIV ALIGN = "CENTER">
+		<H2>Add a New Location to your School</H2>
+		<P>If your school spans multiple locations, then you can add those locations to your school here.
+		<BR>Simply enter a location name and address below and submit it to add it as a location for your school.</P>
+		<BR>
+		<FORM>
+			<!-- Hidden input elements store data which the user cannot change -->
+			<INPUT TYPE = "HIDDEN" ID = "schoolId" NAME = "schoolId" VALUE = "{{ current_school_id }}"></INPUT>
+			
+			<!-- Output the table which will present all options which can be edited to the user -->
+			<TABLE CLASS = "detailsEntry">
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Location Name:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "locationName" NAME = "locationName" CLASS = "schoolDetails"
+							TITLE = "Enter the name of the location you wish to add." AUTOFOCUS></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Street Name 1:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "streetName1" NAME = "streetName1"
+							TITLE = "Enter the street name for your new location." CLASS = "schoolDetails"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Street Name 2:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "streetName2" NAME = "streetName2"
+							TITLE = "Enter the street name for your new location." CLASS = "schoolDetails"></INPUT>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						Town or City:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "townOrCity" NAME = "townOrCity"
+							TITLE = "Enter the town or city in which your new location is based." CLASS = "schoolDetails">
+						</DIV>
+					</TD>
+				</TR>
+				<TR>
+					<TD CLASS = "detailsHeading">
+						County:&nbsp;
+					</TD>
+					<TD CLASS = "detailsEntry">
+						&nbsp;<INPUT TYPE = "TEXT" ID = "county" NAME = "county"
+							TITLE = "Enter the county in which your new location is based." CLASS = "schoolDetails">
+						</DIV>
+					</TD>
+				</TR>
+			</TABLE>
+			<BR>
+			<INPUT TYPE = "BUTTON" TITLE = "Submit the new location details to the database for storage."
+				ONCLICK = "addNewLocation();" VALUE = "Submit New Location"></INPUT>
+		</FORM>
+	</DIV>
+	<BR>
+{% endblock %}
+
+{% block confirmation_windows %}
+<DIV ID = "newLocationAdded" NAME = "newLocationAdded" CLASS = "confirmationWindow" HIDDEN>
+<BR>
+<BR>
+New Location Added Successfully
+</DIV>
+{% endblock %}
