@@ -1513,8 +1513,8 @@ def update_school_opening_hours():
             # Determine the earliest start time for the school and the latest end time
             currentOpeningTimeRecord = listOfOpeningHoursSettings[index].openingTime
             currentClosingTimeRecord = listOfOpeningHoursSettings[index].closingTime
-            openHour = currentOpeningTimeRecord[0:currentOpeningTimeRecord.index(":")]
-            closeHour = currentClosingTimeRecord[0:currentClosingTimeRecord.index(":")]
+            openHour = int(currentOpeningTimeRecord[0:currentOpeningTimeRecord.index(":")])
+            closeHour = int(currentClosingTimeRecord[0:currentClosingTimeRecord.index(":")])
             if earliestStartTime == -1 and latestEndTime == -1:
                 earliestStartTime = openHour
                 latestEndTime = closeHour
